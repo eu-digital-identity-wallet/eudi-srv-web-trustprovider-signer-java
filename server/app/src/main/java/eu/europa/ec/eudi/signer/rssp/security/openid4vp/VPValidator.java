@@ -169,11 +169,11 @@ public class VPValidator {
 
         cert.verify(issuerCertificate.getPublicKey());
         cert.checkValidity();
-        boolean revoked = this.ejbcaService.revocationStatus(cert.getIssuerX500Principal().getName(),
-                cert.getSerialNumber().toString(16));
+
+        /*boolean revoked = this.ejbcaService.revocationStatus(cert.getIssuerX500Principal().getName(), cert.getSerialNumber().toString(16));
         if (revoked) {
             throw new Exception("Revoked Certificate.");
-        }
+        }*/
 
         List<X509Certificate> certificateChain = new ArrayList<>();
         certificateChain.add(cert);
