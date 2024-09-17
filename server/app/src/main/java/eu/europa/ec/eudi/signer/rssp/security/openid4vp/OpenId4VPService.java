@@ -220,9 +220,9 @@ public class OpenId4VPService {
             repository.save(userFromVerifierResponse);
         }
 
-        Authentication authentication = authenticationManager.authenticate(
-                new OpenId4VPAuthenticationToken(userFromVerifierResponse.getHash(), givenName, surname));
+        Authentication authentication = authenticationManager.authenticate(new OpenId4VPAuthenticationToken(userFromVerifierResponse.getHash(), givenName, surname));
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
         if (userInDatabase.isEmpty()) {
             for (Entry<Integer, String> l : logsMap.entrySet())
                 LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
