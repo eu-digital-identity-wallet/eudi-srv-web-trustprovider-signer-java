@@ -8,8 +8,8 @@ ejbca:
     # Endpoint:
     endpoint: /certificate/pkcs10enroll
     # Values required by the endpoint "/pkcs10enroll":
-    certificateProfileName: ENDUSER
-    endEntityProfileName: EMPTY
+    certificateProfileName:
+    endEntityProfileName:
     username:
     password:
     includeChain: true
