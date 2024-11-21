@@ -281,18 +281,7 @@ public class VPValidator {
                         "The Certificate in issuerAuth is not valid. (" + e.getMessage() + ":" + e.getLocalizedMessage() + ")", VerifiablePresentationVerificationException.Default);
             }
 
-            /*if (provider == null) {
-                throw new VerifiablePresentationVerificationException(SignerError.FailedToValidateVPToken,
-                        "It was not possible to create a Crypto Provider to validate the vp_token.",
-                        VerifiablePresentationVerificationException.Default);
-            }
-            if (certificateFromIssuerAuth == null) {
-                throw new VerifiablePresentationVerificationException(SignerError.FailedToValidateVPToken,
-                        "It was not possible to recover a Certificate from the IssuerAuth",
-                        VerifiablePresentationVerificationException.Default);
-            }*/
-
-            MSO mso = document.getMSO();
+            /*MSO mso = document.getMSO();
 
             if (!document.verifyCertificate(provider, this.keyID))
                 throw new VerifiablePresentationVerificationException(SignerError.CertificateIssuerAuthInvalid,
@@ -336,8 +325,7 @@ public class VPValidator {
 
             // Verify the ValidityInfo:
             validateValidityInfoElements(document, mso.getValidityInfo(), certificateFromIssuerAuth.getNotBefore().toInstant(), certificateFromIssuerAuth.getNotAfter().toInstant());
-
-            System.out.println("Verification Success.");
+             */
             return document;
         }
         catch (JSONException e){
