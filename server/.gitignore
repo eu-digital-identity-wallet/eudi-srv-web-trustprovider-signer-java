@@ -2,7 +2,7 @@
 /target/
 !.mvn/wrapper/maven-wrapper.jar
 
-issuersCertificates/scytales.pem
+issuersCertificates/ot_root.pem
 
 ### STS ###
 .apt_generated
