@@ -241,8 +241,7 @@ public class CryptoService {
             logger.error(logMessage);
             LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
                     this.authProperties.getDatasourcePassword(), 0, owner, 3, "");
-            throw new ApiException(SignerError.FailedCreatingKeyPair,
-                    SignerError.FailedCreatingKeyPair.getDescription());
+            throw new ApiException(SignerError.FailedCreatingKeyPair, SignerError.FailedCreatingKeyPair.getDescription());
         }
     }
 
@@ -271,8 +270,7 @@ public class CryptoService {
 
         try {
             // Create a certificate Signing Request for the keys
-            byte[] csrInfo = generator.generateCertificateRequestInfo(ModulusBI, PublicExponentBI, givenName, surname,
-                    subjectCN, countryCode, "Trust Provider Signer EUDIW", alias);
+            byte[] csrInfo = generator.generateCertificateRequestInfo(ModulusBI, PublicExponentBI, givenName, surname, subjectCN, countryCode);
             byte[] signature = hsmService.signDTBSwithRSAPKCS11(privKeyValues, csrInfo);
             PKCS10CertificationRequest certificateHSM = generator.generateCertificateRequest(csrInfo, signature);
 

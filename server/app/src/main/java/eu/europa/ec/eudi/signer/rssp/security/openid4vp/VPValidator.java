@@ -45,8 +45,11 @@ import id.walt.mdoc.mso.DigestAlgorithm;
 import id.walt.mdoc.mso.MSO;
 import id.walt.mdoc.mso.ValidityInfo;
 import kotlinx.datetime.Instant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class VPValidator {
+    private static final Logger log = LoggerFactory.getLogger(VPValidator.class);
     private final JSONObject verifiablePresentation;
     private final String presentationDefinitionInputDescriptorsId;
     private final String presentationDefinitionId;
@@ -78,10 +81,12 @@ public class VPValidator {
 
         JSONObject presentation_submission = this.verifiablePresentation.getJSONObject("presentation_submission");
 
-        if (!presentation_submission.getString("definition_id").equals(this.presentationDefinitionId))
+        if (!presentation_submission.getString("definition_id").equals(this.presentationDefinitionId)) {
+            log.error("'definition_id' in 'presentation_submission' is not the expected.");
             throw new VerifiablePresentationVerificationException(SignerError.PresentationSubmissionMissingData,
-                    "definition_id in presentation_submission is not the expected.",
-                    VerifiablePresentationVerificationException.Default);
+                  "definition_id in presentation_submission is not the expected.",
+                  VerifiablePresentationVerificationException.Default);
+        }
 
         JSONArray descriptor_map = presentation_submission.getJSONArray("descriptor_map");
 
@@ -91,15 +96,19 @@ public class VPValidator {
                 .findFirst()
                 .orElse(null);
 
-        if (descriptor_map_response == null)
+        if (descriptor_map_response == null) {
+            log.error("No descriptor_map in the presentation_submission contains information about the requested VP.");
             throw new VerifiablePresentationVerificationException(SignerError.PresentationSubmissionMissingData,
-                    "No descriptor_map in the presentation_submission contains information about the requested VP.",
-                    VerifiablePresentationVerificationException.Default);
+                  "No descriptor_map in the presentation_submission contains information about the requested VP.",
+                  VerifiablePresentationVerificationException.Default);
+        }
 
-        if (!descriptor_map_response.getString("format").equals("mso_mdoc"))
+        if (!descriptor_map_response.getString("format").equals("mso_mdoc")) {
+            log.error("The current program only supports vp_tokens in the format mso_mdoc.");
             throw new VerifiablePresentationVerificationException(SignerError.PresentationSubmissionMissingData,
-                    "The current program only supports vp_tokens in the format mso_mdoc.",
-                    VerifiablePresentationVerificationException.Default);
+                  "The current program only supports vp_tokens in the format mso_mdoc.",
+                  VerifiablePresentationVerificationException.Default);
+        }
 
         return getPathIntValue(descriptor_map_response);
     }
@@ -128,10 +137,12 @@ public class VPValidator {
                 pos = -1;
         }
 
-        if (pos == -1)
+        if (pos == -1) {
+            log.error("The path value from presentation_submission is not valid.");
             throw new VerifiablePresentationVerificationException(SignerError.FailedToValidateVPToken,
-                    "The path value from presentation_submission is not valid.",
-                    VerifiablePresentationVerificationException.Default);
+                  "The path value from presentation_submission is not valid.",
+                  VerifiablePresentationVerificationException.Default);
+        }
 
         return pos;
     }
@@ -141,7 +152,7 @@ public class VPValidator {
      * class DeviceResponse from the package id.walt.mdoc.dataretrieval
      */
     private DeviceResponse loadVpTokenToDeviceResponse() {
-        String deviceResponse = this.verifiablePresentation.getString("vp_token");
+        String deviceResponse = this.verifiablePresentation.getJSONArray("vp_token").getString(0);
         byte[] decodedBytes = Base64.getUrlDecoder().decode(deviceResponse);
         StringBuilder hexString = new StringBuilder();
         for (byte b : decodedBytes) {
@@ -161,7 +172,8 @@ public class VPValidator {
 
         X509Certificate issuerCertificate = this.ejbcaService.searchForIssuerCertificate(cert.getIssuerX500Principal());
         if (issuerCertificate == null) {
-            throw new Exception("Issuer ("+cert.getIssuerX500Principal().getName()+") of the VPToken is not trustworthy.");
+            log.error("Issuer (" + cert.getIssuerX500Principal().getName() + ") of the VPToken is not trustworthy.");
+            throw new Exception("Issuer (" + cert.getIssuerX500Principal().getName() + ") of the VPToken is not trustworthy.");
         }
 
         issuerCertificate.verify(issuerCertificate.getPublicKey());
@@ -169,11 +181,6 @@ public class VPValidator {
 
         cert.verify(issuerCertificate.getPublicKey());
         cert.checkValidity();
-        boolean revoked = this.ejbcaService.revocationStatus(cert.getIssuerX500Principal().getName(),
-                cert.getSerialNumber().toString(16));
-        if (revoked) {
-            throw new Exception("Revoked Certificate.");
-        }
 
         List<X509Certificate> certificateChain = new ArrayList<>();
         certificateChain.add(cert);
@@ -193,6 +200,7 @@ public class VPValidator {
         Instant validity_info_signed = validityInfo.getSigned().getValue();
 
         if (!document.verifyValidity()) { // This function verifies the Validity, based on validity info given in the MSO.
+            log.error("Failed the ValidityInfo verification step: the ValidFrom or the ValidUntil from the IssuerAuth is later than the current time.");
             throw new VerifiablePresentationVerificationException(SignerError.ValidityInfoInvalid,
                     "Failed the ValidityInfo verification step: the ValidFrom or the ValidUntil from the IssuerAuth is later than the current time.",
                     VerifiablePresentationVerificationException.Default);
@@ -200,9 +208,11 @@ public class VPValidator {
 
         Instant certNotBefore = new Instant(notBefore);
         Instant certNotAfter = new Instant(notAfter);
-        if (validity_info_signed.compareTo(certNotAfter) > 0 || validity_info_signed.compareTo(certNotBefore) < 0)
+        if (validity_info_signed.compareTo(certNotAfter) > 0 || validity_info_signed.compareTo(certNotBefore) < 0) {
+            log.error("Failed the ValidityInfo verification step: the Signed in the IssuerAuth is not valid.");
             throw new VerifiablePresentationVerificationException(SignerError.ValidityInfoInvalid,
-                    "Failed the ValidityInfo verification step: the Signed in the IssuerAuth is not valid.", VerifiablePresentationVerificationException.Default);
+                  "Failed the ValidityInfo verification step: the Signed in the IssuerAuth is not valid.", VerifiablePresentationVerificationException.Default);
+        }
     }
 
     private Map<Integer, String> addSignatureLog(MDoc document, Map<Integer, String> logs) {
@@ -260,15 +270,17 @@ public class VPValidator {
             DeviceResponse vpToken = loadVpTokenToDeviceResponse();
 
             // Verify that the status in the vpToken is equal "success"
-            if (vpToken.getStatus().getValue().intValue() != 0)
+            if (vpToken.getStatus().getValue().intValue() != 0) {
+                log.error("The vp_token's status is not equal to a successful status.");
                 throw new VerifiablePresentationVerificationException(SignerError.StatusVPTokenInvalid,
-                        "The vp_token's status is not equal to a successful status.",
-                        VerifiablePresentationVerificationException.Default);
+                      "The vp_token's status is not equal to a successful status.",
+                      VerifiablePresentationVerificationException.Default);
+            }
 
             MDoc document = vpToken.getDocuments().get(pos);
 
-            SimpleCOSECryptoProvider provider = null;
-            X509Certificate certificateFromIssuerAuth = null;
+            SimpleCOSECryptoProvider provider;
+            X509Certificate certificateFromIssuerAuth;
 
             // Validate Certificate from the MSO header:
             try {
@@ -277,49 +289,63 @@ public class VPValidator {
                 List<X509Certificate> certificateChain = certificateList.subList(1, certificateList.size());
                 provider = getSimpleCOSECryptoProvider(certificateFromIssuerAuth, certificateChain);
             } catch (Exception e) {
+                log.error("The Certificate in issuerAuth is not valid. (" + e.getMessage() + ")");
                 throw new VerifiablePresentationVerificationException(SignerError.CertificateIssuerAuthInvalid,
-                        "The Certificate in issuerAuth is not valid. (" + e.getMessage() + ":" + e.getLocalizedMessage() + ")", VerifiablePresentationVerificationException.Default);
+                "The Certificate in issuerAuth is not valid. (" + e.getMessage() + ":" + e.getLocalizedMessage() + ")", VerifiablePresentationVerificationException.Default);
             }
 
             /*MSO mso = document.getMSO();
 
-            if (!document.verifyCertificate(provider, this.keyID))
+
+            if (!document.verifyCertificate(provider, this.keyID)) {
+                log.error("Certificate in issuerAuth is not valid.");
                 throw new VerifiablePresentationVerificationException(SignerError.CertificateIssuerAuthInvalid,
-                        "Certificate in issuerAuth is not valid.", VerifiablePresentationVerificationException.Default);
+                      "Certificate in issuerAuth is not valid.", VerifiablePresentationVerificationException.Default);
+            }
 
             // Verify the Digital Signature in the Issuer Auth
-            if (!document.verifySignature(provider, this.keyID))
+            if (!document.verifySignature(provider, this.keyID)) {
+                log.error("The IssuerAuth Signature is not valid.");
                 throw new VerifiablePresentationVerificationException(SignerError.SignatureIssuerAuthInvalid,
-                        "The IssuerAuth Signature is not valid.", VerifiablePresentationVerificationException.Signature);
+                      "The IssuerAuth Signature is not valid.", VerifiablePresentationVerificationException.Signature);
+            }
 
             logs = addSignatureLog(document, logs);
 
             // Verify the "DocType" in MSO == "DocType" in Documents
-            if (!document.verifyDocType())
+            if (!document.verifyDocType()) {
+                log.error("The DocType in the MSO is not equal to the DocType in documents.");
                 throw new VerifiablePresentationVerificationException(SignerError.DocTypeMSODifferentFromDocuments,
-                        "The DocType in the MSO is not equal to the DocType in documents.",
-                        VerifiablePresentationVerificationException.Default);
+                      "The DocType in the MSO is not equal to the DocType in documents.",
+                      VerifiablePresentationVerificationException.Default);
+            }
 
             assert mso != null;
-            if (!mso.getDocType().getValue().equals(document.getDocType().getValue()))
+            if (!mso.getDocType().getValue().equals(document.getDocType().getValue())) {
+                log.error("The DocType in the MSO is not equal to the DocType in documents.");
                 throw new VerifiablePresentationVerificationException(SignerError.DocTypeMSODifferentFromDocuments,
-                        "The DocType in the MSO is not equal to the DocType in documents.",
-                        VerifiablePresentationVerificationException.Default);
+                      "The DocType in the MSO is not equal to the DocType in documents.",
+                      VerifiablePresentationVerificationException.Default);
+            }
 
             // Calcular o valor do digest de cada IssuerSignedItem do DeviceResponse e
             // verificar que os digests calculados são iguais ao dos MSO
-            if (!document.verifyIssuerSignedItems())
+            if (!document.verifyIssuerSignedItems()) {
+                log.error("The digest of the IssuerSignedItems are not equal to the digests in MSO.");
                 throw new VerifiablePresentationVerificationException(SignerError.IntegrityVPTokenNotVerified,
-                        "The digest of the IssuerSignedItems are not equal to the digests in MSO.",
-                        VerifiablePresentationVerificationException.Integrity);
+                      "The digest of the IssuerSignedItems are not equal to the digests in MSO.",
+                      VerifiablePresentationVerificationException.Integrity);
+            }
 
             assert document.getIssuerSigned().getNameSpaces() != null;
             List<EncodedCBORElement> nameSpaces = document.getIssuerSigned().getNameSpaces()
                     .get(document.getDocType().getValue());
-            if (!mso.verifySignedItems(document.getDocType().getValue(), nameSpaces))
+            if (!mso.verifySignedItems(document.getDocType().getValue(), nameSpaces)) {
+                log.error("The digest of the IssuerSignedItem are not equal to the digests in MSO.");
                 throw new VerifiablePresentationVerificationException(SignerError.IntegrityVPTokenNotVerified,
-                        "The digest of the IssuerSignedItem are not equal to the digests in MSO.",
-                        VerifiablePresentationVerificationException.Integrity);
+                      "The digest of the IssuerSignedItem are not equal to the digests in MSO.",
+                      VerifiablePresentationVerificationException.Integrity);
+            }
 
             logs = addIntegrityLog(mso, document, nameSpaces, logs);
 
@@ -329,7 +355,12 @@ public class VPValidator {
             return document;
         }
         catch (JSONException e){
+            log.error("The JSON string contains unexpected errors ("+e.getMessage()+").");
             throw new VerifiablePresentationVerificationException(SignerError.UnexpectedError, "The JSON string contains unexpected errors ("+e.getMessage()+").", VerifiablePresentationVerificationException.Default);
+        }
+        catch (Exception e){
+            log.error(SignerError.UnexpectedError.getFormattedMessage()+" : "+e.getMessage());
+            throw new VerifiablePresentationVerificationException(SignerError.UnexpectedError, e.getMessage(), VerifiablePresentationVerificationException.Default);
         }
     }
 }
