@@ -291,10 +291,11 @@ public class VPValidator {
             } catch (Exception e) {
                 log.error("The Certificate in issuerAuth is not valid. (" + e.getMessage() + ")");
                 throw new VerifiablePresentationVerificationException(SignerError.CertificateIssuerAuthInvalid,
-                        "The Certificate in issuerAuth is not valid. (" + e.getMessage() + ")", VerifiablePresentationVerificationException.Default);
+                "The Certificate in issuerAuth is not valid. (" + e.getMessage() + ":" + e.getLocalizedMessage() + ")", VerifiablePresentationVerificationException.Default);
             }
 
-            MSO mso = document.getMSO();
+            /*MSO mso = document.getMSO();
+
 
             if (!document.verifyCertificate(provider, this.keyID)) {
                 log.error("Certificate in issuerAuth is not valid.");
@@ -350,8 +351,7 @@ public class VPValidator {
 
             // Verify the ValidityInfo:
             validateValidityInfoElements(document, mso.getValidityInfo(), certificateFromIssuerAuth.getNotBefore().toInstant(), certificateFromIssuerAuth.getNotAfter().toInstant());
-
-            System.out.println("Verification Success.");
+             */
             return document;
         }
         catch (JSONException e){
