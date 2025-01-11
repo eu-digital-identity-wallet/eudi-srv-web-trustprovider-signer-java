@@ -106,6 +106,7 @@ class AppHeader extends Component {
                                     <li className="nav-item">
                                         <a
                                             onClick={this.verify}
+                                            onKeyDown={this.verify}
                                             className="nav-link"
                                         >
                                             Signing PDF
@@ -148,6 +149,9 @@ class AppHeader extends Component {
                                                 <a
                                                     className="dropdown-item"
                                                     onClick={() =>
+                                                        context.logout()
+                                                    }
+                                                    onKeyDown={() =>
                                                         context.logout()
                                                     }
                                                 >
