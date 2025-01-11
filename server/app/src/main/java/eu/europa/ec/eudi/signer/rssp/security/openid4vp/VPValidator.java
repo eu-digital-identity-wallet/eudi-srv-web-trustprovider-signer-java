@@ -141,7 +141,7 @@ public class VPValidator {
      * class DeviceResponse from the package id.walt.mdoc.dataretrieval
      */
     private DeviceResponse loadVpTokenToDeviceResponse() {
-        String deviceResponse = this.verifiablePresentation.getString("vp_token");
+        String deviceResponse = this.verifiablePresentation.getJSONArray("vp_token").getString(0);
         byte[] decodedBytes = Base64.getUrlDecoder().decode(deviceResponse);
         StringBuilder hexString = new StringBuilder();
         for (byte b : decodedBytes) {

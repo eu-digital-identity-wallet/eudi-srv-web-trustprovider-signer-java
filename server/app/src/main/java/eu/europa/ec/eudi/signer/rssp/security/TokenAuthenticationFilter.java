@@ -48,8 +48,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     private static final Logger logger = LoggerFactory.getLogger(TokenAuthenticationFilter.class);
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String jwt = getJwtFromRequest(request);
         if (StringUtils.hasText(jwt)) {
             JwtToken token = tokenProvider.validateToken(jwt);
@@ -57,8 +56,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                 String username = token.getSubject();
                 try {
                     UserDetails userDetails2 = customUserOID4VPDetailsService.loadUserByUsername(username);
-                    OpenId4VPAuthenticationToken authentication2 = new OpenId4VPAuthenticationToken(userDetails2,
-                            userDetails2.getAuthorities());
+                    OpenId4VPAuthenticationToken authentication2 = new OpenId4VPAuthenticationToken(userDetails2, userDetails2.getAuthorities());
                     authentication2.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication2);
                 } catch (Exception ex1) {
