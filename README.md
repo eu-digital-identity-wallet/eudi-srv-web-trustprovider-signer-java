@@ -2,23 +2,23 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
--   [TrustProvider Signer](#trustprovider-signer)
-    -   [Overview](#overview)
-        -   [Features](#features)
-    -   [:heavy_exclamation_mark: Disclaimer](#heavy_exclamation_mark-disclaimer)
-    -   [Configuration](#configuration)
-        -   [Requirements](#requirements)
-        -   [Database](#database)
-        -   [HTTP Requests to EJBCA](#http-requests-to-ejbca)
-        -   [HSM module](#hsm-module)
-        -   [Authentication using OpenId4VP](#authentication-using-openid4vp)
-    -   [Running the TrustProvider Signer](#running-the-trustprovider-signer)
-    -   [Testing](#testing)
-    -   [Demo videos](#demo-videos)
-    -   [How to contribute](#how-to-contribute)
-    -   [License](#license)
-        -   [Third-party component licenses](#third-party-component-licenses)
-        -   [License details](#license-details)
+- [TrustProvider Signer](#trustprovider-signer)
+  - [Overview](#overview)
+    - [Features](#features)
+  - [:heavy_exclamation_mark: Disclaimer](#heavy_exclamation_mark-disclaimer)
+  - [Configuration](#configuration)
+    - [Requirements](#requirements)
+    - [Database](#database)
+    - [HTTP Requests to EJBCA](#http-requests-to-ejbca)
+    - [HSM module](#hsm-module)
+    - [Authentication using OpenId4VP](#authentication-using-openid4vp)
+  - [Running the TrustProvider Signer](#running-the-trustprovider-signer)
+  - [Testing](#testing)
+  - [Demo videos](#demo-videos)
+  - [How to contribute](#how-to-contribute)
+  - [License](#license)
+    - [Third-party component licenses](#third-party-component-licenses)
+    - [License details](#license-details)
 
 :heavy_exclamation_mark: **Important!** Before you proceed, please read
 the [EUDI Wallet Reference Implementation project description](https://github.com/eu-digital-identity-wallet/.github/blob/main/profile/reference-implementation.md)
@@ -31,40 +31,40 @@ TrustProvider Signer is a remote signing service provider and client.
 
 The program implements the following features:
 
--   **Create an Account**: Allows users to create new accounts within the program.
--   **Authentication using OpenId4VP**: Enables authentication through OpenId4VP.
--   **Create Certificates**: Enables authenticated users to create new certificates and their associated key pairs.
--   **Sign Documents**: Allows an authenticated user to digitally sign documents.
+- **Create an Account**: Allows users to create new accounts within the program.
+- **Authentication using OpenId4VP**: Enables authentication through OpenId4VP.
+- **Create Certificates**: Enables authenticated users to create new certificates and their associated key pairs.
+- **Sign Documents**: Allows an authenticated user to digitally sign documents.
 
 ## :heavy_exclamation_mark: Disclaimer
 
 The released software is a initial development release version:
 
--   The initial development release is an early endeavor reflecting the efforts of a short timeboxed
-    period, and by no means can be considered as the final product.
--   The initial development release may be changed substantially over time, might introduce new
-    features but also may change or remove existing ones, potentially breaking compatibility with your
-    existing code.
--   The initial development release is limited in functional scope.
--   The initial development release may contain errors or design flaws and other problems that could
-    cause system or other failures and data loss.
--   The initial development release has reduced security, privacy, availability, and reliability
-    standards relative to future releases. This could make the software slower, less reliable, or more
-    vulnerable to attacks than mature software.
--   The initial development release is not yet comprehensively documented.
--   Users of the software must perform sufficient engineering and additional testing in order to
-    properly evaluate their application and determine whether any of the open-sourced components is
-    suitable for use in that application.
--   We strongly recommend not putting this version of the software into production use.
--   Only the latest version of the software will be supported
+- The initial development release is an early endeavor reflecting the efforts of a short timeboxed
+  period, and by no means can be considered as the final product.
+- The initial development release may be changed substantially over time, might introduce new
+  features but also may change or remove existing ones, potentially breaking compatibility with your
+  existing code.
+- The initial development release is limited in functional scope.
+- The initial development release may contain errors or design flaws and other problems that could
+  cause system or other failures and data loss.
+- The initial development release has reduced security, privacy, availability, and reliability
+  standards relative to future releases. This could make the software slower, less reliable, or more
+  vulnerable to attacks than mature software.
+- The initial development release is not yet comprehensively documented.
+- Users of the software must perform sufficient engineering and additional testing in order to
+  properly evaluate their application and determine whether any of the open-sourced components is
+  suitable for use in that application.
+- We strongly recommend not putting this version of the software into production use.
+- Only the latest version of the software will be supported
 
 ## Configuration
 
 ### Requirements
 
--   Node (nodejs & npm)
--   Java: version 16
--   Maven
+- Node (nodejs & npm)
+- Java: version 16
+- Maven
 
 ### Application-auth.yml
 
@@ -186,12 +186,13 @@ This version of the program was tested using the HSM distribution _Utimaco vHSM_
 
 This application requires users to authenticate and authorize the signature of documents with Certificates they own through their EUDI Wallet.
 
-To enable this feature, communication with a backend **Verifier** is necessary. Define the address and URL of the Verifier by adding the configuration in _'application.yml'_ located in the folder _'server/app/src/main/resources'_:
+To enable this feature, communication with a backend **Verifier** is necessary. Define the address, URL and the client*id of the Verifier by adding the configuration in *'application.yml'_ located in the folder _'server/app/src/main/resources'\_:
 
 ```bash
 verifier:
   url:
   address:
+  client_id:
 ```
 
 By default, this configuration is set to a backend server based on the code from the github **'eu-digital-identity-wallet/eudi-srv-web-verifier-endpoint-23220-4-kt'**. Therefore, the default configuration is:
@@ -200,6 +201,7 @@ By default, this configuration is set to a backend server based on the code from
 verifier:
   url: https://dev.verifier-backend.eudiw.dev/ui/presentations
   address: dev.verifier-backend.eudiw.dev
+  client_id: x509_san_dns:verifier-backend.eudiw.dev
 ```
 
 When a user wants to authenticate or sign a document, the server communicates with the Verifier and redirects the user to the EUDI Wallet. The result of this process is vp_tokens. The application then validates the vp_tokens received from the Verifier.

@@ -18,8 +18,6 @@ package eu.europa.ec.eudi.signer.csc.payload;
 
 public class RedirectLinkResponse {
     public String link;
-    // public String presentationId;
-    // public String nonce;
 
     public void setLink(String link) {
         this.link = link;
@@ -28,22 +26,4 @@ public class RedirectLinkResponse {
     public String getLink() {
         return this.link;
     }
-
-    /*
-     * public String getPresentationId() {
-     * return presentationId;
-     * }
-     * 
-     * public void setPresentationId(String presentation_id) {
-     * this.presentationId = presentation_id;
-     * }
-     * 
-     * public String getNonce() {
-     * return nonce;
-     * }
-     * 
-     * public void setNonce(String nonce) {
-     * this.nonce = nonce;
-     * }
-     */
 }

@@ -43,8 +43,9 @@ assina:
         lifetimeMinutes: 600
 
 verifier:
-    url: https://dev.verifier-backend.eudiw.dev/ui/presentations
-    address: dev.verifier-backend.eudiw.dev
+    url: https://verifier-backend.eudiw.dev/ui/presentations
+    address: verifier-backend.eudiw.dev
+    client_id: x509_san_dns:verifier-backend.eudiw.dev
 
 trusted-issuers:
     folder: issuersCertificates
