@@ -105,11 +105,6 @@ public class OpenId4VPService {
      * 
      * @param messageFromVerifier                      the message receive from the
      *                                                 verifier
-     * @param presentationDefinitionId                 the id from the presentation
-     *                                                 definition of the request
-     * @param presentationDefinitionInputDescriptorsId the id of the input
-     *                                                 descriptors in the
-     *                                                 presentation definition
      * @return the Jwt Token created
      * @throws VerifiablePresentationVerificationException the error that could be
      *                                                     obtained from the vp
@@ -118,7 +113,6 @@ public class OpenId4VPService {
      *                                                     appear in the additional
      *                                                     validation of the vp
      *                                                     token
-     * @throws NoSuchAlgorithmException
      */
     public AuthResponse loadUserFromVerifierResponseAndGetJWTToken(String messageFromVerifier)
             throws VerifiablePresentationVerificationException, VPTokenInvalid, NoSuchAlgorithmException, Exception {
@@ -178,26 +172,26 @@ public class OpenId4VPService {
         String birthDate = null;
         String issuingCountry = null;
         String issuanceAuthority = null;
-        boolean ageOver18 = false;
+        // boolean ageOver18 = false;
 
         for (IssuerSignedItem el : l) {
             switch (el.getElementIdentifier().getValue()) {
                 case "family_name" -> familyName = el.getElementValue().getValue().toString();
                 case "given_name" -> givenName = el.getElementValue().getValue().toString();
                 case "birth_date" -> birthDate = el.getElementValue().getValue().toString();
-                case "age_over_18" -> ageOver18 = (boolean) el.getElementValue().getValue();
+                // case "age_over_18" -> ageOver18 = (boolean) el.getElementValue().getValue();
                 case "issuing_authority" -> issuanceAuthority = el.getElementValue().getValue().toString();
                 case "issuing_country" -> issuingCountry = el.getElementValue().getValue().toString();
             }
         }
 
-        if (!ageOver18) {
+        /*if (!ageOver18) {
             String logMessage = SignerError.UserNotOver18.getCode()
                     + "(loadUserFromDocument in OpenId4VPService.class): "
                     + SignerError.UserNotOver18.getDescription();
             log.error(logMessage);
             throw new VPTokenInvalid(SignerError.UserNotOver18, "User must be over 18 to use this program.");
-        }
+        }*/
 
         if (familyName == null || givenName == null || birthDate == null || issuingCountry == null) {
             String logMessage = SignerError.VPTokenMissingValues.getCode()

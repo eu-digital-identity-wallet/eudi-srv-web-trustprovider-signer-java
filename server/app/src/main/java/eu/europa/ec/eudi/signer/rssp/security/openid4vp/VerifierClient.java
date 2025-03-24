@@ -46,7 +46,6 @@ import eu.europa.ec.eudi.signer.rssp.util.WebUtils;
  */
 @Component
 public class VerifierClient {
-
     public static String Authentication = "Authentication";
     public static String Authorization = "Authorization";
     public static String PresentationDefinitionId = "32f54163-7166-48f1-93d8-ff217bdb0653";
@@ -65,7 +64,6 @@ public class VerifierClient {
     /**
      * Function that allows to make a Presentation Request, following the OpenID for
      * Verifiable Presentations - draft 20, to the verifier
-     * 
      * This function already writes the logs for the ApiException. The message in
      * that exceptions can also be used to display info to the user.
      * 
@@ -74,10 +72,8 @@ public class VerifierClient {
      * @param type the type of the operation that requires the use of OID4VP (ex:
      *             authentication or authorization)
      * @return the deep link that redirects the user to the EUDI Wallet
-     * @throws ApiException
-     * @throws Exception
      */
-    public RedirectLinkResponse initPresentationTransaction(String user, String type) throws ApiException, Exception {
+    public RedirectLinkResponse initPresentationTransaction(String user, String type) throws Exception {
         if (operationTypeIsInvalid(type)) {
             String logMessage = SignerError.UnexpectedOperationType.getCode()
                     + "(initPresentationTransaction in VerifierClient.class): "
@@ -87,41 +83,12 @@ public class VerifierClient {
                     SignerError.UnexpectedOperationType.getFormattedMessage());
         }
 
-        // Set Headers
-        Map<String, String> headers = getHeaders();
         String nonce = generateNonce();
-
-        String presentationDefinition = "{" +
-                "'id': '32f54163-7166-48f1-93d8-ff217bdb0653'," +
-                "'input_descriptors': [{" +
-                "'id': '"+PresentationDefinitionInputDescriptorsId+"'," +
-                "'name': 'EUDI PID'," +
-                "'purpose': 'We need to verify your identity'," +
-                "'format': {'mso_mdoc': {" +
-                "'alg': ['ES256', 'ES384', 'ES512', 'EdDSA'] } }," +
-                "'constraints': {" +
-                "'fields': [" +
-                "{'path': [\"$['"+PresentationDefinitionInputDescriptorsId+"']['family_name']\"], 'intent_to_retain': true}," +
-                "{\"path\": [\"$['"+PresentationDefinitionInputDescriptorsId+"']['given_name']\"],  \"intent_to_retain\": true}," +
-                "{\"path\": [\"$['"+PresentationDefinitionInputDescriptorsId+"']['birth_date']\"],  \"intent_to_retain\": true}," +
-                "{\"path\": [\"$['"+PresentationDefinitionInputDescriptorsId+"']['age_over_18']\"], \"intent_to_retain\": false}," +
-                "{\"path\": [\"$['"+PresentationDefinitionInputDescriptorsId+"']['issuing_authority']\"], \"intent_to_retain\": true}," +
-                "{\"path\": [\"$['"+PresentationDefinitionInputDescriptorsId+"']['issuing_country']\"], \"intent_to_retain\": true}" +
-                "]}}]}";
-
-        JSONObject presentationDefinitionJsonObject = new JSONObject(presentationDefinition);
-
-        // Set JSON Body
-        JSONObject jsonBodyToInitPresentation = new JSONObject();
-        jsonBodyToInitPresentation.put("type", "vp_token");
-        jsonBodyToInitPresentation.put("nonce", nonce);
-        jsonBodyToInitPresentation.put("presentation_definition", presentationDefinitionJsonObject);
 
         // Send HTTP Post Request & Receives the Response
         JSONObject responseFromVerifierAfterInitPresentation;
         try {
-            responseFromVerifierAfterInitPresentation = httpRequestToInitPresentation(
-                    jsonBodyToInitPresentation.toString(), headers);
+            responseFromVerifierAfterInitPresentation = httpRequestToInitPresentation(nonce);
         } catch (Exception e) {
             String logMessage = SignerError.FailedConnectionToVerifier.getCode()
                     + " (initPresentationTransaction in VerifierClient.class) "
@@ -132,14 +99,12 @@ public class VerifierClient {
         }
 
         RedirectLinkResponse response = new RedirectLinkResponse();
-        // throws an api exception that is already "handled"
         String presentation_id = getPresentationIdAndCreateDeepLink(responseFromVerifierAfterInitPresentation,
                 response);
 
         verifierVariables.addUsersVerifierCreatedVariable(user, type, nonce, presentation_id);
 
-        log.info("User " + user + " executed successfully the operation " + type + ". Nonce: " + nonce
-                + " & Presentation_id: " + presentation_id);
+		log.info("User {} executed successfully the operation {}. Nonce: {} & Presentation_id: {}", user, type, nonce, presentation_id);
         log.info("Current Verifier Variables State: " + verifierVariables);
         return response;
     }
@@ -153,11 +118,8 @@ public class VerifierClient {
      * @param type the type of the operation that requires the use of OID4VP (ex:
      *             authentication or authorization)
      * @return the VP Token received from the Verifier
-     * @throws TimeoutException
-     * @throws FailedConnectionVerifier
      */
-    public String getVPTokenFromVerifier(String user, String type)
-            throws TimeoutException, FailedConnectionVerifier, Exception {
+    public String getVPTokenFromVerifier(String user, String type) throws Exception {
         if (operationTypeIsInvalid(type)) {
             String logMessage = SignerError.UnexpectedOperationType.getCode()
                     + "(getVPTokenFromVerifier in VerifierClient.class): "
@@ -181,8 +143,7 @@ public class VerifierClient {
         String nonce = variables.getNonce();
         String presentation_id = variables.getPresentation_id();
         log.info("Current Verifier Variables State: " + verifierVariables);
-        log.info("User " + user + " tried executed the operation " + type + ". Nonce: " + nonce + " & Presentation_id: "
-                + presentation_id);
+		log.info("User {} tried executed the operation {}. Nonce: {} & Presentation_id: {}", user, type, nonce, presentation_id);
 
         Map<String, String> headers = getHeaders();
         String url = uriToRequestWalletPID(presentation_id, nonce);
@@ -223,9 +184,6 @@ public class VerifierClient {
     private Map<String, String> getHeaders() {
         Map<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "application/json");
-        // headers.put("Cookie",
-        // "SERVERUSED=server1;
-        // TS010b9524=01eb1053a0beaccfef181704d8d63c0d7987f347a2ec9fb8e7523c06298d62ad3dd30e17c3aa0a3535482f38f21aad94d3c37023fd39b9b7250ee76b594cb67c5aa2f212de");
         return headers;
     }
 
@@ -237,11 +195,44 @@ public class VerifierClient {
         return Base64.getUrlEncoder().encodeToString(result);
     }
 
-    private JSONObject httpRequestToInitPresentation(String jsonObjectString, Map<String, String> headers)
-            throws Exception {
+    private String getPresentationDefinition(String nonce) {
+
+        String presentationDefinition = "{" +
+              "'id': '32f54163-7166-48f1-93d8-ff217bdb0653'," +
+              "'input_descriptors': [{" +
+              "'id': '"+PresentationDefinitionInputDescriptorsId+"'," +
+              "'name': 'EUDI PID'," +
+              "'purpose': 'We need to verify your identity'," +
+              "'format': {'mso_mdoc': {" +
+              "'alg': ['ES256', 'ES384', 'ES512'] } }," +
+              "'constraints': {" +
+              "'limit_disclosure': 'required',"+
+              "'fields': [" +
+              "{'path': [\"$['"+PresentationDefinitionInputDescriptorsId+"']['family_name']\"], 'intent_to_retain': true}," +
+              "{\"path\": [\"$['"+PresentationDefinitionInputDescriptorsId+"']['given_name']\"],  \"intent_to_retain\": true}," +
+              "{\"path\": [\"$['"+PresentationDefinitionInputDescriptorsId+"']['birth_date']\"],  \"intent_to_retain\": true}," +
+              "{\"path\": [\"$['"+PresentationDefinitionInputDescriptorsId+"']['issuing_authority']\"], \"intent_to_retain\": true}," +
+              "{\"path\": [\"$['"+PresentationDefinitionInputDescriptorsId+"']['issuing_country']\"], \"intent_to_retain\": true}" +
+              "]}}]}";
+
+        JSONObject presentationDefinitionJsonObject = new JSONObject(presentationDefinition);
+
+        // Set JSON Body
+        JSONObject jsonBodyToInitPresentation = new JSONObject();
+        jsonBodyToInitPresentation.put("type", "vp_token");
+        jsonBodyToInitPresentation.put("nonce", nonce);
+        jsonBodyToInitPresentation.put("presentation_definition", presentationDefinitionJsonObject);
+
+        return jsonBodyToInitPresentation.toString();
+    }
+
+    private JSONObject httpRequestToInitPresentation(String nonce) throws Exception {
+        Map<String, String> headers = getHeaders();
+        String presentationDefinition = getPresentationDefinition(nonce);
+
         HttpResponse response;
         try {
-            response = WebUtils.httpPostRequest(verifierProperties.getUrl(), headers, jsonObjectString);
+            response = WebUtils.httpPostRequest(verifierProperties.getUrl(), headers, presentationDefinition);
         } catch (Exception e) {
             throw new Exception("An error occurred when trying to connect to the Verifier");
         }
@@ -249,7 +240,8 @@ public class VerifierClient {
         if (response.getStatusLine().getStatusCode() != 200) {
             String error = WebUtils.convertStreamToString(response.getEntity().getContent());
             int statusCode = response.getStatusLine().getStatusCode();
-            log.error("HTTP Post Request not successful. Error : " + statusCode);
+			log.error("HTTP Post Request not successful. Error : {}", statusCode);
+			log.error("Error: {}", error);
             throw new Exception("HTTP Post Request not successful. Error : " + response.getStatusLine().getStatusCode());
         }
 
@@ -269,33 +261,55 @@ public class VerifierClient {
         return responseVerifier;
     }
 
-    // returns the presentation_id
-    private String getPresentationIdAndCreateDeepLink(JSONObject responseFromVerifier, RedirectLinkResponse response)
-            throws ApiException, Exception {
+    private String getPresentationIdAndCreateDeepLink(JSONObject responseFromVerifier, RedirectLinkResponse response) throws Exception {
         Set<String> keys = responseFromVerifier.keySet();
-        if (!keys.contains("request_uri") || !keys.contains("client_id") || !keys.contains("presentation_id")) {
+
+        if (!keys.contains("request_uri")){
+            log.error("Missing 'request_uri' from InitTransaction Response");
             String logMessage = SignerError.MissingDataInResponseVerifier.getCode()
-                    + "(getPresentationIdAndCreateDeepLink in VerifierClient.class) "
-                    + SignerError.MissingDataInResponseVerifier.getDescription();
+                  + "(getPresentationIdAndCreateDeepLink in VerifierClient.class) "
+                  + SignerError.MissingDataInResponseVerifier.getDescription();
             log.error(logMessage);
             throw new ApiException(SignerError.MissingDataInResponseVerifier,
-                    SignerError.MissingDataInResponseVerifier.getFormattedMessage());
+                  SignerError.MissingDataInResponseVerifier.getFormattedMessage());
+        }
+        if(!keys.contains("client_id")){
+            log.error("Missing 'client_id' from InitTransaction Response");
+            String logMessage = SignerError.MissingDataInResponseVerifier.getCode()
+                  + "(getPresentationIdAndCreateDeepLink in VerifierClient.class) "
+                  + SignerError.MissingDataInResponseVerifier.getDescription();
+            log.error(logMessage);
+            throw new ApiException(SignerError.MissingDataInResponseVerifier,
+                  SignerError.MissingDataInResponseVerifier.getFormattedMessage());
+        }
+        if(!keys.contains("transaction_id")){
+            log.error("Missing 'transaction_id' from InitTransaction Response");
+            String logMessage = SignerError.MissingDataInResponseVerifier.getCode()
+                  + "(getPresentationIdAndCreateDeepLink in VerifierClient.class) "
+                  + SignerError.MissingDataInResponseVerifier.getDescription();
+            log.error(logMessage);
+            throw new ApiException(SignerError.MissingDataInResponseVerifier,
+                  SignerError.MissingDataInResponseVerifier.getFormattedMessage());
         }
 
         String request_uri = responseFromVerifier.getString("request_uri");
+        log.info("Request URI: "+request_uri);
         String client_id = responseFromVerifier.getString("client_id");
-        if(!client_id.equals(this.verifierProperties.getAddress())){
+        log.info("Client Id: "+ client_id);
+        if(!client_id.equals(this.verifierProperties.getClientId())){
             String logMessage = SignerError.UnexpectedError.getCode()
                     + "(getPresentationIdAndCreateDeepLink in VerifierClient.class) Message received from the Verifier doesn't contained the client_id expected.";
             log.error(logMessage);
             throw new ApiException(SignerError.UnexpectedError,
                     SignerError.UnexpectedError.getFormattedMessage());
         }
-        String presentation_id = responseFromVerifier.getString("presentation_id");
+        String presentation_id = responseFromVerifier.getString("transaction_id");
+        log.info("Transaction Id: "+presentation_id);
         String encoded_request_uri = URLEncoder.encode(request_uri, StandardCharsets.UTF_8);
 
         // Generates a deepLink to the EUDIW App
         String deepLink = redirectUriDeepLink(encoded_request_uri, client_id);
+        log.error(deepLink);
         response.setLink(deepLink);
         return presentation_id;
     }
