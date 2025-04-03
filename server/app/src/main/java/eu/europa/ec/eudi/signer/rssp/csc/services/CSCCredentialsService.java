@@ -247,8 +247,7 @@ public class CSCCredentialsService {
 	 * @param userPrincipal    user making the request - must own the credentials
 	 * @param authorizeRequest authorization request
 	 */
-	public CSCCredentialsAuthorizeResponse authorizeCredential(UserPrincipal userPrincipal,
-			CSCCredentialsAuthorizeRequest authorizeRequest)
+	public CSCCredentialsAuthorizeResponse authorizeCredential(UserPrincipal userPrincipal, CSCCredentialsAuthorizeRequest authorizeRequest)
 			throws FailedConnectionVerifier, TimeoutException, AccessCredentialDeniedException,
 			VerifiablePresentationVerificationException, VPTokenInvalid, ApiException {
 
@@ -256,8 +255,7 @@ public class CSCCredentialsService {
 
 		Optional<User> user = userService.getUserById(id);
 		if (user.isEmpty()) {
-			String logMessage = SignerError.UserNotFound.getCode()
-					+ "(authorizeCredential in CSCCredentialsService.class): User not found.";
+			String logMessage = SignerError.UserNotFound.getCode() + ": User not found.";
 			logger.error(logMessage);
 			throw new ApiException(SignerError.UserNotFound, "User " + id + " not found.");
 		}
@@ -267,25 +265,25 @@ public class CSCCredentialsService {
 		return response;
 	}
 
-	public CSCCredentialsAuthorizeResponse authorizeCredentialWithOID4VP(User user,
-			CSCCredentialsAuthorizeRequest authorizeRequest,
-			CSCCredentialsAuthorizeResponse response)
-			throws FailedConnectionVerifier, TimeoutException, ApiException, AccessCredentialDeniedException,
-			VerifiablePresentationVerificationException, VPTokenInvalid {
+	public CSCCredentialsAuthorizeResponse authorizeCredentialWithOID4VP(User user, CSCCredentialsAuthorizeRequest authorizeRequest, CSCCredentialsAuthorizeResponse response)
+			throws FailedConnectionVerifier, TimeoutException, ApiException, AccessCredentialDeniedException, VerifiablePresentationVerificationException, VPTokenInvalid {
 		final String credentialID = authorizeRequest.getCredentialID();
 		User loaded = null;
 
 		try {
-			String message = verifierClient.getVPTokenFromVerifier(user.getId(), VerifierClient.Authorization);
+			String message;
+			System.out.println(authorizeRequest.getCode());
+			if(authorizeRequest.getCode() != null)
+				message = verifierClient.getVPTokenFromVerifier(user.getId(), VerifierClient.Authorization, authorizeRequest.getCode());
+			else
+				message = verifierClient.getVPTokenFromVerifierRecursive(user.getId(), VerifierClient.Authorization);
 			Map<Integer, String> logsMap = new HashMap<>();
 			loaded = this.userOID4VPService.loadUserFromVerifierResponse(message, this.ejbcaService, logsMap);
 			for (Entry<Integer, String> l : logsMap.entrySet())
-				LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
-						this.authProperties.getDatasourcePassword(), 1, user.getId(), l.getKey(), l.getValue());
+				LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(), this.authProperties.getDatasourcePassword(), 1, user.getId(), l.getKey(), l.getValue());
 
 		} catch (FailedConnectionVerifier e) {
-			String logMessage = SignerError.FailedConnectionToVerifier.getCode()
-					+ "(authorizeCredentialWithOID4VP in CSCCredentialsService.class): "
+			String logMessage = SignerError.FailedConnectionToVerifier.getCode() + ": "
 					+ SignerError.FailedConnectionToVerifier.getDescription();
 			logger.error(logMessage);
 			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
@@ -374,7 +372,7 @@ public class CSCCredentialsService {
 	 * @throws ApiException exceptions that could occorred (logs for debug and for
 	 *                      the user where already created)
 	 */
-	public RedirectLinkResponse authorizationLinkCredential(UserPrincipal userPrincipal) throws ApiException {
+	public RedirectLinkResponse authorizationLinkCredential(UserPrincipal userPrincipal, String redirect_uri) throws ApiException {
 		RedirectLinkResponse response;
 		String id = userPrincipal.getId();
 
@@ -387,8 +385,7 @@ public class CSCCredentialsService {
 		}
 
 		try {
-			response = this.verifierClient.initPresentationTransaction(optionalUserOID4VP.get().getId(),
-					VerifierClient.Authorization);
+			response = this.verifierClient.initPresentationTransaction(optionalUserOID4VP.get().getId(), VerifierClient.Authorization, redirect_uri);
 			return response;
 		} catch (ApiException e) {
 			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),

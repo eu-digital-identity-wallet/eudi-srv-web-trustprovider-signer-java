@@ -14,7 +14,7 @@
  limitations under the License.
  */
 
-import React, { Component, useState } from 'react';
+import React, { Component } from 'react';
 
 import { log_download_file } from '../../util/APIUtils';
 import axios from 'axios';

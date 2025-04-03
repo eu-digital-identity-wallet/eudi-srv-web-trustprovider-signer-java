@@ -14,20 +14,16 @@
  limitations under the License.
  */
 
-import React, { Component, useContext } from "react";
+import React, { Component } from "react";
 import "./Login.css";
 import LoadingIndicator from "../../common/LoadingIndicator";
-
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-import { ASSINA_RSSP_BASE_URL, API_BASE_URL } from "../../constants";
+import { ASSINA_CLIENT_BASE_URL, ASSINA_RSSP_BASE_URL, API_BASE_URL } from "../../constants";
 import axios from "axios";
-// import QRCode from "react-qr-code";
 import logo from "../../img/logo.svg";
 import { QRCode } from "react-qrcode-logo";
 import symbol from "../../img/Symbol.png";
-
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../../site.css";
 import "./Login.css";
@@ -75,7 +71,7 @@ class SocialLogin extends Component {
 
     constructor(props) {
         super(props);
-        this.state = { answerFromOID4VP: false, visible: false, deeplink: "" };
+        this.state = { answerFromOID4VP: false, visible: false, same_device_deeplink: "", cross_device_deeplink: "" };
         this.handleClick = this.handleClick.bind(this);
         this.updateStateAfterAuthentication =
             this.updateStateAfterAuthentication.bind(this);
@@ -85,7 +81,8 @@ class SocialLogin extends Component {
         this.setState({
             answerFromOID4VP: false,
             visible: false,
-            deeplink: "",
+            same_device_deeplink: "",
+            cross_device_deeplink: "",
         });
     }
 
@@ -94,12 +91,17 @@ class SocialLogin extends Component {
             answerFromOID4VP: true,
         });
 
+        let redirect_uri = ASSINA_CLIENT_BASE_URL+"/redirect";
+        let url_encoded_redirect_uri = encodeURIComponent(redirect_uri);
+
         axios
-            .get(ASSINA_RSSP_BASE_URL + "/auth/link", { withCredentials: true })
+            .get(ASSINA_RSSP_BASE_URL + "/auth/link?redirect_uri="+url_encoded_redirect_uri, { withCredentials: true })
             .then((responseRedirectLink) => {
-                const deeplink = responseRedirectLink.data.link;
+                const same_device_deeplink = responseRedirectLink.data.same_device_link;
+                const cross_device_deeplink = responseRedirectLink.data.cross_device_link;
                 this.setState({
-                    deeplink: deeplink,
+                    same_device_deeplink: same_device_deeplink,
+                    cross_device_deeplink: cross_device_deeplink,
                     visible: true,
                 });
 
@@ -159,7 +161,8 @@ class SocialLogin extends Component {
                         this.setState({
                             answerFromOID4VP: false,
                             visible: false,
-                            deeplink: "",
+                            same_device_deeplink: "",
+                            cross_device_deeplink: "",
                         });
                     });
             })
@@ -200,7 +203,7 @@ class SocialLogin extends Component {
                         {this.state.visible && (
                             <div className="qrcode_container">
                                 <QRCode
-                                    value={this.state.deeplink}
+                                    value={this.state.cross_device_deeplink}
                                     size={250}
                                     logoImage={symbol}
                                     logoWidth={200}
@@ -210,7 +213,7 @@ class SocialLogin extends Component {
                                 />
                                 <a
                                     className="btn_redirect"
-                                    href={this.state.deeplink}
+                                    href={this.state.same_device_deeplink}
                                 >
                                     Deep Link to EUDI Wallet (same device)
                                 </a>

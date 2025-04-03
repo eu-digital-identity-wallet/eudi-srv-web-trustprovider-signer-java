@@ -57,23 +57,6 @@ public class CSCCredentialsController {
 		this.authProperties = authProperties;
 	}
 
-	/*
-	 * @PostMapping("list")
-	 * 
-	 * @ResponseStatus(HttpStatus.OK)
-	 * public CSCCredentialsListResponse list(@CurrentUser UserPrincipal
-	 * userPrincipal,
-	 * 
-	 * @Valid @RequestBody(required = false) CSCCredentialsListRequest listRequest)
-	 * {
-	 * if (listRequest == null) {
-	 * listRequest = new CSCCredentialsListRequest();
-	 * }F
-	 * listRequest.setUserId(userPrincipal.getId());
-	 * return credentialsService.listCredentials(listRequest);
-	 * }
-	 */
-
 	@PostMapping("info")
 	@ResponseStatus(HttpStatus.OK)
 	public CSCCredentialsInfoResponse info(@CurrentUser UserPrincipal userPrincipal,
@@ -84,9 +67,9 @@ public class CSCCredentialsController {
 
 	@GetMapping("authorizationLink")
 	@ResponseStatus(HttpStatus.OK)
-	public RedirectLinkResponse authorizeLink(@CurrentUser UserPrincipal userPrincipal) {
+	public RedirectLinkResponse authorizeLink(@CurrentUser UserPrincipal userPrincipal, @RequestParam String redirect_uri) {
 		try {
-			return credentialsService.authorizationLinkCredential(userPrincipal);
+			return credentialsService.authorizationLinkCredential(userPrincipal, redirect_uri);
 		} catch (ApiException e) {
 			return new RedirectLinkResponse();
 		}
@@ -98,8 +81,7 @@ public class CSCCredentialsController {
 			@CurrentUser UserPrincipal userPrincipal,
 			@Valid @RequestBody CSCCredentialsAuthorizeRequest authorizeRequest) {
 		try {
-			CSCCredentialsAuthorizeResponse response = credentialsService.authorizeCredential(userPrincipal,
-					authorizeRequest);
+			CSCCredentialsAuthorizeResponse response = credentialsService.authorizeCredential(userPrincipal, authorizeRequest);
 			return ResponseEntity.ok(response);
 		} catch (FailedConnectionVerifier e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -117,14 +99,11 @@ public class CSCCredentialsController {
 			SignerError error = (SignerError) e.getApiError();
 			return ResponseEntity.badRequest().body(error.getFormattedMessage() + " (" + e.getMessage() + ")");
 		} catch (Exception e) {
-
-			String logMessage = SignerError.UnexpectedError.getCode()
-					+ " (authorize in CSCCredentialsController.class): " + e.getMessage();
+			String logMessage = SignerError.UnexpectedError.getCode() + ": " + e.getMessage();
 			log.error(logMessage);
 			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
 					this.authProperties.getDatasourcePassword(), 0, userPrincipal.getId(), 6, "");
 			return ResponseEntity.badRequest().body(SignerError.UnexpectedError.getFormattedMessage());
 		}
 	}
-
 }

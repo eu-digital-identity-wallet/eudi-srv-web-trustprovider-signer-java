@@ -28,9 +28,9 @@ public interface SignerClient {
       * 
       * @return the deep link
       */
-     RedirectLinkResponse getOIDRedirectLink();
+	RedirectLinkResponse getOIDRedirectLink(String redirect_uri);
 
-     /**
+	/**
       * Function that prepares the signer
       * 
       * @return the client context updated
@@ -49,7 +49,7 @@ public interface SignerClient {
       * @throws AccessCredentialDeniedException
       * @throws Exception
       */
-     public byte[] signHash(String pdfName, byte[] pdfHash, ClientContext context)
+     public byte[] signHash(String pdfName, byte[] pdfHash, String responseCode, ClientContext context)
                throws FailedConnectionVerifier, TimeoutException, AccessCredentialDeniedException, Exception;
 
 }

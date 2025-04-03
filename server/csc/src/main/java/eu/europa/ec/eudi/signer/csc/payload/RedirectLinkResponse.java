@@ -17,13 +17,22 @@
 package eu.europa.ec.eudi.signer.csc.payload;
 
 public class RedirectLinkResponse {
-    public String link;
+    private String same_device_link;
+    private String cross_device_link;
 
-    public void setLink(String link) {
-        this.link = link;
+    public String getSame_device_link() {
+        return same_device_link;
     }
 
-    public String getLink() {
-        return this.link;
+    public void setSame_device_link(String same_device_link) {
+        this.same_device_link = same_device_link;
+    }
+
+    public String getCross_device_link() {
+        return cross_device_link;
+    }
+
+    public void setCross_device_link(String cross_device_link) {
+        this.cross_device_link = cross_device_link;
     }
 }

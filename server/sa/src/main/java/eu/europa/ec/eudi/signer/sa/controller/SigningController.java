@@ -46,6 +46,8 @@ import eu.europa.ec.eudi.signer.sa.services.FileStorageService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequestMapping(value = "/sa")
@@ -72,13 +74,15 @@ public class SigningController {
 	 */
 	@GetMapping("/getOIDRedirectLink")
 	public ResponseEntity<RedirectLinkResponse> getOIDRedirectLink(
-			@RequestHeader("Authorization") String authorizationHeader) {
+			@RequestHeader("Authorization") String authorizationHeader, @RequestParam String redirect_uri) {
 
 		if (!StringUtils.hasText(authorizationHeader)) {
 			throw new InvalidRequestException("Expected an authorization header");
 		}
 
-		RedirectLinkResponse res = this.signingService.getOIDRedirectLink(authorizationHeader);
+		String redirect_uri_decoded = URLDecoder.decode(redirect_uri, StandardCharsets.UTF_8);
+		log.info("redirect_uri from Request: {}", redirect_uri_decoded);
+		RedirectLinkResponse res = this.signingService.getOIDRedirectLink(authorizationHeader, redirect_uri_decoded);
 		return ResponseEntity.ok(res);
 	}
 
@@ -96,8 +100,9 @@ public class SigningController {
 	 */
 	@PostMapping("/signFile")
 	public Object uploadFile(@RequestHeader("Authorization") String authorizationHeader,
-			@RequestParam("file") MultipartFile file,
-			@RequestParam("credential") String credentialAlias) {
+							 @RequestParam("file") MultipartFile file,
+							 @RequestParam("credential") String credentialAlias,
+							 @RequestParam(value = "response_code", required = false) String responseCode) {
 
 		if (!StringUtils.hasText(authorizationHeader)) {
 			throw new InvalidRequestException("Expected an authorization header");
@@ -105,7 +110,7 @@ public class SigningController {
 
 		try {
 			String originalFileName = fileStorageService.storeFile(file);
-			String signedFileName = signingService.signFile(originalFileName, credentialAlias, authorizationHeader);
+			String signedFileName = signingService.signFile(originalFileName, credentialAlias, authorizationHeader, responseCode);
 			String saUrl = env.getProperty("ASSINA_SA_BASE_URL");
 			if (saUrl == null)
 				saUrl = "http://localhost:8083";

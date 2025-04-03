@@ -24,21 +24,21 @@ export const AuthContext = createContext();
 
 const AuthProvider = ({ children }) => {
     const [currentUserName, setCurrentUserName] = useState(
-        sessionStorage.getItem("CurrentUserName") || null
+        localStorage.getItem("CurrentUserName") || null
     );
     const [token, setToken] = useState(
-        sessionStorage.getItem(ACCESS_TOKEN) || ""
+        localStorage.getItem(ACCESS_TOKEN) || ""
     );
     const [authenticated, setAuthenticated] = useState(
-        sessionStorage.getItem("Authenticated") || false
+        localStorage.getItem("Authenticated") || false
     );
 
     const navigate = useNavigate();
 
     const loginAction = async (currentUserName, currentToken) => {
-        sessionStorage.setItem(ACCESS_TOKEN, currentToken);
-        sessionStorage.setItem("Authenticated", true);
-        sessionStorage.setItem("CurrentUserName", currentUserName);
+        localStorage.setItem(ACCESS_TOKEN, currentToken);
+        localStorage.setItem("Authenticated", true);
+        localStorage.setItem("CurrentUserName", currentUserName);
         setCurrentUserName(currentUserName);
         setToken(currentToken);
         setAuthenticated(true);
@@ -47,7 +47,7 @@ const AuthProvider = ({ children }) => {
     };
 
     const logout = () => {
-        const token = sessionStorage.getItem(ACCESS_TOKEN);
+        const token = localStorage.getItem(ACCESS_TOKEN);
         if (token !== null) {
             const headers = {
                 "Content-Type": "application/json",
@@ -61,11 +61,11 @@ const AuthProvider = ({ children }) => {
                 .catch((error) => {
                     console.log(error);
                 });
-            sessionStorage.removeItem(ACCESS_TOKEN);
+            localStorage.removeItem(ACCESS_TOKEN);
         }
 
-        sessionStorage.removeItem("Authenticated", false);
-        sessionStorage.removeItem("CurrentUserName", null);
+        localStorage.removeItem("Authenticated", false);
+        localStorage.removeItem("CurrentUserName", null);
         setCurrentUserName(null);
         setToken("");
         setAuthenticated(false);

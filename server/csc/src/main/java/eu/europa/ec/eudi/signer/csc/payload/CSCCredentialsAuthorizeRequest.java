@@ -82,6 +82,9 @@ public class CSCCredentialsAuthorizeRequest {
     // 8.3.2.
     private String clientData;
 
+    // OPTIONAL
+    private String code;
+
     public String getCredentialID() {
         return credentialID;
     }
@@ -128,5 +131,13 @@ public class CSCCredentialsAuthorizeRequest {
 
     public void setClientData(String clientData) {
         this.clientData = clientData;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 }

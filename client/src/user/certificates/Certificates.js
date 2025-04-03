@@ -42,7 +42,7 @@ class Certificates extends Component {
 
     componentDidMount() {
         const headers = {
-            Authorization: "Bearer " + sessionStorage.getItem(ACCESS_TOKEN),
+            Authorization: "Bearer " + localStorage.getItem(ACCESS_TOKEN),
         };
 
         axios
@@ -84,7 +84,7 @@ class Certificates extends Component {
 
     onUpdateCertificateList() {
         const headers = {
-            Authorization: "Bearer " + sessionStorage.getItem(ACCESS_TOKEN),
+            Authorization: "Bearer " + localStorage.getItem(ACCESS_TOKEN),
         };
         axios
             .post(
@@ -108,7 +108,7 @@ class Certificates extends Component {
         event.preventDefault();
 
         const headers = {
-            Authorization: "Bearer " + sessionStorage.getItem(ACCESS_TOKEN),
+            Authorization: "Bearer " + localStorage.getItem(ACCESS_TOKEN),
         };
         const url = API_BASE_URL + "/credentials/" + credential.alias;
         axios
