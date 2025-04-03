@@ -32,7 +32,7 @@ class Profile extends Component {
         super(props);
         this.state = {
             numCredentials: 0,
-            token: sessionStorage.getItem(ACCESS_TOKEN) || "",
+            token: localStorage.getItem(ACCESS_TOKEN) || "",
             inputAlias: "",
             showInputFields: false,
             verify_Cert: 0,

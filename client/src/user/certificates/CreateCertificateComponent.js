@@ -59,7 +59,7 @@ class CreateCredentialComponent extends Component {
         this.setState({ waitCertificate: true });
 
         const headers = {
-            Authorization: "Bearer " + sessionStorage.getItem(ACCESS_TOKEN),
+            Authorization: "Bearer " + localStorage.getItem(ACCESS_TOKEN),
         };
         const data = new FormData();
         data.append("alias", this.state.inputAlias);

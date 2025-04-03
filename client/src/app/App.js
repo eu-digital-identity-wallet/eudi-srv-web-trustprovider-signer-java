@@ -19,6 +19,8 @@ import { Route, Routes } from "react-router-dom";
 import AppHeader from "../common/AppHeader";
 import Home from "../home/Home";
 import Login from "../user/login/Login";
+import Redirect from "../user/redirect_login/Redirect";
+import RedirectSign from "../user/redirect_sign/RedirectSign";
 import Sign from "../user/sign/Sign";
 import Download from "../user/download/Download";
 import Profile from "../user/profile/Profile";
@@ -40,6 +42,8 @@ class App extends Component {
                 <Routes>
                     <Route exact path="/" element={<Home />}></Route>
                     <Route path="/login" element={<Login />}></Route>
+                    <Route path="/redirect" element={<Redirect />}></Route>
+                    <Route path="/sign/redirect" element={<RedirectSign />}></Route>
                     <Route element={<PersonalizedRoute />}>
                         <Route path="/profile" element={<Profile />} />
                         <Route path="/sign" element={<Sign />} />

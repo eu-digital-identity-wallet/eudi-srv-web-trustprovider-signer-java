@@ -59,8 +59,8 @@ public class RSSPClient implements SignerClient {
     }
 
     @Override
-    public RedirectLinkResponse getOIDRedirectLink() {
-        final RedirectLinkResponse response = requestOIDRedirectLink().block();
+    public RedirectLinkResponse getOIDRedirectLink(String redirect_uri) {
+        final RedirectLinkResponse response = requestOIDRedirectLink(redirect_uri).block();
         assert response != null;
         return response;
     }
@@ -109,13 +109,13 @@ public class RSSPClient implements SignerClient {
     }
 
     @Override
-    public byte[] signHash(String pdfName, byte[] pdfHash, ClientContext context)
+    public byte[] signHash(String pdfName, byte[] pdfHash, String responseCode, ClientContext context)
             throws FailedConnectionVerifier, TimeoutException, AccessCredentialDeniedException, Exception {
 
         String credentialAlias = context.getCredentialID();
 
         // now authorize it
-        String SAD = authorizeCredential(credentialAlias);
+        String SAD = authorizeCredential(credentialAlias, responseCode);
         if (SAD == null) {
             throw new InvalidRequestException("Could not authorize the credential with the PIN");
         }
@@ -129,9 +129,9 @@ public class RSSPClient implements SignerClient {
 
     // -------
 
-    public Mono<RedirectLinkResponse> requestOIDRedirectLink() {
+    public Mono<RedirectLinkResponse> requestOIDRedirectLink(String redirect_uri) {
         return webClient.get()
-                .uri("/credentials/authorizationLink")
+                .uri("/credentials/authorizationLink?redirect_uri="+redirect_uri)
                 .header("Authorization", buildAuthHeader())
                 .retrieve()
                 .bodyToMono(
@@ -199,11 +199,11 @@ public class RSSPClient implements SignerClient {
         return requestCredentialInfo(request).block();
     }
 
-    public String authorizeCredential(String credentialAlias)
-            throws FailedConnectionVerifier, TimeoutException, AccessCredentialDeniedException, Exception {
+    public String authorizeCredential(String credentialAlias, String responseCode) throws FailedConnectionVerifier, TimeoutException, AccessCredentialDeniedException, Exception {
         CSCCredentialsAuthorizeRequest request = new CSCCredentialsAuthorizeRequest();
         request.setCredentialID(credentialAlias);
         request.setNumSignatures(1);
+        request.setCode(responseCode);
 
         try {
             Mono<CSCCredentialsAuthorizeResponse> authorizationResponse = webClient.post()

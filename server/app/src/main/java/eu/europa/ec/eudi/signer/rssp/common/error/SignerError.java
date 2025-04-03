@@ -32,10 +32,7 @@ public enum SignerError implements ApiError {
 
         AlgorithmNotSupported("algorithm_not_supported", "The algorithm chosen is not supported", 500),
 
-        FailedCreatingKeyPair("failed_creating_key_pair", "An error occurred while generating the key pair", 500), // 500
-                                                                                                                   // internal
-                                                                                                                   // server
-                                                                                                                   // error
+        FailedCreatingKeyPair("failed_creating_key_pair", "An error occurred while generating the key pair", 500),
 
         FailedCreatingCertificate("failed_creating_certificate",
                         "An error occurred while generating certificate", 500), // 500 internal server error

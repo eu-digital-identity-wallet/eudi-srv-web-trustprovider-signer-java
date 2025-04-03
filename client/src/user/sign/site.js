@@ -135,7 +135,7 @@ export function InitializeStepper()
         getContent: null // Callback function for content loading
       });
 
-      $('#smartwizard').smartWizard("reset");
+      // $('#smartwizard').smartWizard("reset");
 }
 
 export function nextStep(type) {

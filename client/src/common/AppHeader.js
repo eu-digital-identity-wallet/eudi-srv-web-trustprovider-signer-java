@@ -38,7 +38,7 @@ class AppHeader extends Component {
 
     verify() {
         const headers = {
-            Authorization: "Bearer " + sessionStorage.getItem(ACCESS_TOKEN),
+            Authorization: "Bearer " + localStorage.getItem(ACCESS_TOKEN),
         };
 
         axios

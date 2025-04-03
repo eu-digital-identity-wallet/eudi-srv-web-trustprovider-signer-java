@@ -14,9 +14,7 @@ node_modules/jquery
 
 /files/*
 /server/app/src/main/resources/application-auth.yml
-
-# Created by https://www.toptal.com/developers/gitignore/api/java,node
-# Edit at https://www.toptal.com/developers/gitignore?templates=java,node
+/server/app/src/main/resources/application-dev.yml
 
 ### Java ###
 # Compiled class file
