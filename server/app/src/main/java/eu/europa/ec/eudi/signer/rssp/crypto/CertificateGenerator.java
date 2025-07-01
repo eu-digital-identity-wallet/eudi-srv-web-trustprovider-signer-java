@@ -16,11 +16,10 @@
 
 package eu.europa.ec.eudi.signer.rssp.crypto;
 
+import eu.europa.ec.eudi.signer.rssp.common.config.CSCProperties;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.ASN1Set;
 import org.bouncycastle.asn1.DERBitString;
 import org.bouncycastle.asn1.DERSet;
-import org.bouncycastle.asn1.pkcs.Attribute;
 import org.bouncycastle.asn1.pkcs.CertificationRequest;
 import org.bouncycastle.asn1.pkcs.CertificationRequestInfo;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
@@ -28,21 +27,12 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
-import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.ExtensionsGenerator;
-import org.bouncycastle.asn1.x509.GeneralName;
-import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
-import org.bouncycastle.util.encoders.Base64;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.europa.ec.eudi.signer.rssp.common.config.CryptoConfig;
-
-import java.io.FileOutputStream;
 import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.KeyPairGenerator;
@@ -50,7 +40,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Security;
-import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Calendar;
@@ -64,13 +53,13 @@ import java.util.TimeZone;
  */
 public class CertificateGenerator {
 	private List<String> keyAlgorithmOIDs;
-	private final CryptoConfig config;
+	private final CSCProperties.Crypto config;
 	private boolean initialized;
 	KeyPairGenerator keyPairGenerator;
 
 	private static final Logger log = LoggerFactory.getLogger(CertificateGenerator.class);
 
-	public CertificateGenerator(CryptoConfig config) {
+	public CertificateGenerator(CSCProperties.Crypto config) {
 		this.config = config;
 		initialized = false;
 	}

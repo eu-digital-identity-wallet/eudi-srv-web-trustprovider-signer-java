@@ -27,8 +27,7 @@ import eu.europa.ec.eudi.signer.sa.config.RSSPClientConfig;
 
 /** Main Spring Boot application class for Trust Provider Signer application */
 @EnableConfigurationProperties({ FileStorageConfig.class, RSSPClientConfig.class })
-// disable security on the Signing App - all security is on the RSSP
-@SpringBootApplication(scanBasePackages = "eu.europa.ec.eudi.signer.sa", exclude = SecurityAutoConfiguration.class)
+@SpringBootApplication(exclude = SecurityAutoConfiguration.class)
 public class SigningApplication {
 
 	public static void main(String[] args) {

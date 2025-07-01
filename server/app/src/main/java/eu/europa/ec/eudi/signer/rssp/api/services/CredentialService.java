@@ -18,13 +18,13 @@ package eu.europa.ec.eudi.signer.rssp.api.services;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import eu.europa.ec.eudi.signer.rssp.api.model.LoggerUtil;
 import eu.europa.ec.eudi.signer.csc.payload.CredentialInfo;
-import eu.europa.ec.eudi.signer.rssp.common.config.AuthProperties;
 import eu.europa.ec.eudi.signer.rssp.common.error.ApiException;
 import eu.europa.ec.eudi.signer.rssp.common.error.SignerError;
 import eu.europa.ec.eudi.signer.rssp.entities.Credential;
@@ -42,20 +42,19 @@ public class CredentialService {
 
 	private final CredentialRepository credentialRepository;
 	private final CryptoService cryptoService;
-	private final AuthProperties authProperties;
+	private final LoggerUtil loggerUtil;
 
-	public CredentialService(CredentialRepository credentialRepository,
-			CryptoService cryptoService, AuthProperties authProperties) {
+	public CredentialService(@Autowired CredentialRepository credentialRepository, @Autowired CryptoService cryptoService, @Autowired LoggerUtil loggerUtil) {
 		this.credentialRepository = credentialRepository;
 		this.cryptoService = cryptoService;
-		this.authProperties = authProperties;
+		this.loggerUtil = loggerUtil;
 	}
 
 	/**
 	 * Creates a new certificate and keypair combinations and stores them in the
 	 * repository.
 	 * Exception (Api Exception): if a credential with the same alias already exists
-	 * 
+	 *
 	 * @param owner       the id of the user that owns this credential
 	 * @param givenName   the given name of the user that owns this credential (used
 	 *                    to create the certificate)
@@ -74,9 +73,7 @@ public class CredentialService {
 					+ " (createCredential in CredentialService.class) "
 					+ SignerError.CredentialAliasAlreadyExists.getDescription();
 			logger.error(logMessage);
-			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
-					this.authProperties.getDatasourcePassword(), 0, owner, 1,
-					SignerError.CredentialAliasAlreadyExists.getDescription());
+			loggerUtil.logsUser(0, owner, 1, SignerError.CredentialAliasAlreadyExists.getDescription());
 
 			throw new ApiException(SignerError.CredentialAliasAlreadyExists,
 					"The credential alias " + alias + " chosen is not valid. The aliases must be unique.");
@@ -105,19 +102,17 @@ public class CredentialService {
 					+ " (deleteCredential in CredentialService.class) "
 					+ SignerError.CredentialNotFound.getDescription();
 			logger.error(logMessage);
-			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
-					this.authProperties.getDatasourcePassword(), 0, ownerId, 2, "");
+			loggerUtil.logsUser(0, ownerId, 2, "");
 			throw new ApiException(SignerError.CredentialNotFound,
 					"Attempted to delete the credential " + credentialAlias + ", that does not exist.");
 		}
-		LoggerUtil.desc = "Certificate Alias: " + credential.get().getAlias()
+		String info = "Certificate Alias: " + credential.get().getAlias()
 				+ " | Subject DN: " + credential.get().getSubjectDN()
 				+ " | Issuer DN: " + credential.get().getIssuerDN()
 				+ " | Valid From: " + credential.get().getValidFrom()
 				+ " | Valid To: " + credential.get().getValidTo();
 		credentialRepository.deleteByOwnerAndAlias(ownerId, credentialAlias);
-		LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(), this.authProperties.getDatasourcePassword(),
-				1, ownerId, 2, LoggerUtil.desc);
+		loggerUtil.logsUser(1, ownerId, 2, info);
 	}
 
 	// ...............................
@@ -133,13 +128,6 @@ public class CredentialService {
 		return credentialsInfo;
 	}
 
-	/**
-	 * Gets credentials for the specified owner a page at a time
-	 * 
-	 * @param owner    user who owns the credentials (also the subject of the cert
-	 * @param pageable
-	 * @return
-	 */
 	public Page<Credential> getCredentialsByOwner(String owner, Pageable pageable) {
 		return credentialRepository.findByOwner(owner, pageable);
 	}

@@ -16,7 +16,7 @@
 
 package eu.europa.ec.eudi.signer.rssp.entities;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import javax.validation.constraints.NotNull;
 
 import eu.europa.ec.eudi.signer.rssp.api.model.DateAudit;

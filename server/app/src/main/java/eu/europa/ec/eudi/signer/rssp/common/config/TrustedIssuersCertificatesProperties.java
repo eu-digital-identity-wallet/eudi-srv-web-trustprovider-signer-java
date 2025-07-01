@@ -17,10 +17,7 @@
 package eu.europa.ec.eudi.signer.rssp.common.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.ConstructorBinding;
-
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -29,16 +26,13 @@ import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
-
 import javax.validation.constraints.NotNull;
 
-@ConstructorBinding
 @ConfigurationProperties(prefix = "trusted-issuers")
 public class TrustedIssuersCertificatesProperties {
 
     @NotNull
     private String folder;
-
     private final Map<String, X509Certificate> trustIssuersCertificates;
 
     public TrustedIssuersCertificatesProperties(String folder) throws Exception{

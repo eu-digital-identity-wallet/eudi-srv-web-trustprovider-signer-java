@@ -19,16 +19,15 @@ package eu.europa.ec.eudi.signer.rssp.api.controller;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import eu.europa.ec.eudi.signer.rssp.common.config.DataSourceConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import eu.europa.ec.eudi.signer.rssp.api.model.LoggerUtil;
 import eu.europa.ec.eudi.signer.rssp.api.payload.LogDTO;
 import eu.europa.ec.eudi.signer.rssp.api.services.UserService;
-import eu.europa.ec.eudi.signer.rssp.common.config.AuthProperties;
 import eu.europa.ec.eudi.signer.rssp.common.error.SignerError;
 import eu.europa.ec.eudi.signer.rssp.entities.LogsUser;
 import eu.europa.ec.eudi.signer.rssp.entities.User;
@@ -45,21 +44,20 @@ public class LogsController {
     private final LogsUserRepository repository;
     private final Map<Integer, String> events;
     private final SimpleDateFormat formatter;
-    private final AuthProperties authProperties;
+    private final LoggerUtil loggerUtil;
 
-    public LogsController(@Autowired final LogsUserRepository logsUserRepository,
-            @Autowired UserService userService, @Autowired AuthProperties authProperties) {
+    public LogsController(@Autowired final LogsUserRepository logsUserRepository, @Autowired UserService userService,
+                          @Autowired DataSourceConfig dataSourceConfig, @Autowired LoggerUtil loggerUtil) {
         this.userService = userService;
         this.repository = logsUserRepository;
-        this.events = EventRepository.event(authProperties.getDatasourceUsername(),
-                authProperties.getDatasourcePassword());
+        this.events = EventRepository.event(dataSourceConfig.getDatasourceUsername(), dataSourceConfig.getDatasourcePassword());
         this.formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-        this.authProperties = authProperties;
+        this.loggerUtil = loggerUtil;
     }
 
     /**
      * Function that returns either an empty list if the user is not found, or the
-     * list of the logs of the logged in user.
+     * list of the logs of the logged-in user.
      * 
      * @param userPrincipal the currentUser logged in
      * @return the list of the logs of the user
@@ -86,18 +84,18 @@ public class LogsController {
             returnList.add(lDTO);
         }
 
-        Collections.sort(returnList, new Comparator<LogDTO>() {
-            @Override
-            public int compare(LogDTO s1, LogDTO s2) {
-                try {
-                    Date d1 = formatter.parse(s1.getLogTime());
-                    Date d2 = formatter.parse(s2.getLogTime());
-                    return d2.compareTo(d1);
-                } catch (Exception e) {
-                    return 0;
-                }
-            }
-        });
+        returnList.sort(new Comparator<LogDTO>() {
+			@Override
+			public int compare(LogDTO s1, LogDTO s2) {
+				try {
+					Date d1 = formatter.parse(s1.getLogTime());
+					Date d2 = formatter.parse(s2.getLogTime());
+					return d2.compareTo(d1);
+				} catch (Exception e) {
+					return 0;
+				}
+			}
+		});
 
         // returnList.sort((o1, o2) -> o2.getLogTime().compareTo(o1.getLogTime()));
         return ResponseEntity.ok(returnList);
@@ -116,15 +114,11 @@ public class LogsController {
 
         Optional<User> user = userService.getUserById(id);
         if (user.isEmpty()) {
-            String logMessage = SignerError.UserNotFound.getCode()
-                    + "(logout in LogsController.class): User not found.";
+            String logMessage = SignerError.UserNotFound.getCode() + "(logout in LogsController.class): User not found.";
             logger.error(logMessage);
-
             return ResponseEntity.badRequest().body(SignerError.UserNotFound.getFormattedMessage());
         }
-
-        LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(), this.authProperties.getDatasourcePassword(),
-                1, id, 5, "");
+        loggerUtil.logsUser(1, id, 5, "");
         return ResponseEntity.ok("ok");
     }
 
@@ -142,15 +136,11 @@ public class LogsController {
 
         Optional<User> user = userService.getUserById(id);
         if (user.isEmpty()) {
-            String logMessage = SignerError.UserNotFound.getCode()
-                    + " (download_log in LogsController.class) User not found.";
+            String logMessage = SignerError.UserNotFound.getCode() + " (download_log in LogsController.class) User not found.";
             logger.error(logMessage);
-
             return ResponseEntity.badRequest().body(SignerError.UserNotFound.getFormattedMessage());
         }
-
-        LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(), this.authProperties.getDatasourcePassword(),
-                1, id, 7, "File Name: " + fileName);
+        loggerUtil.logsUser(1, id, 7, "File Name: " + fileName);
         return ResponseEntity.ok("ok");
     }
 }

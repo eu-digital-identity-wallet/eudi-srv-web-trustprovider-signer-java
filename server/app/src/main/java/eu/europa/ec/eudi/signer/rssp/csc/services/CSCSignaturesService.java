@@ -27,7 +27,6 @@ import eu.europa.ec.eudi.signer.csc.payload.CSCSignaturesSignHashResponse;
 import eu.europa.ec.eudi.signer.rssp.api.model.LoggerUtil;
 import eu.europa.ec.eudi.signer.rssp.api.services.CredentialService;
 import eu.europa.ec.eudi.signer.rssp.api.services.UserService;
-import eu.europa.ec.eudi.signer.rssp.common.config.AuthProperties;
 import eu.europa.ec.eudi.signer.rssp.common.error.ApiException;
 import eu.europa.ec.eudi.signer.rssp.common.error.SignerError;
 import eu.europa.ec.eudi.signer.rssp.entities.Credential;
@@ -48,22 +47,19 @@ public class CSCSignaturesService {
 	private final UserService userService;
 	private final CryptoService cryptoService;
 	private final CSCSADProvider sadProvider;
-	private final AuthProperties authProperties;
+	private final LoggerUtil loggerUtil;
 
 	public CSCSignaturesService(CredentialService credentialService, UserService userService,
-			CryptoService cryptoService, CSCSADProvider sadProvider, AuthProperties authProperties) {
+			CryptoService cryptoService, CSCSADProvider sadProvider, LoggerUtil loggerUtil) {
 		this.credentialService = credentialService;
 		this.userService = userService;
 		this.cryptoService = cryptoService;
 		this.sadProvider = sadProvider;
-		this.authProperties = authProperties;
+		this.loggerUtil = loggerUtil;
 	}
 
 	/**
 	 * Sign the provided hash with the credential specified in the request
-	 * 
-	 * @param signHashRequest
-	 * @return
 	 */
 	public CSCSignaturesSignHashResponse signHash(UserPrincipal userPrincipal,
 			@Valid @RequestBody CSCSignaturesSignHashRequest signHashRequest) {
@@ -84,11 +80,9 @@ public class CSCSignaturesService {
 		final Credential credential = credentialService
 				.getCredentialWithAlias(userPrincipal.getId(), credentialAlias).orElseThrow(
 						() -> {
-							LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
-									this.authProperties.getDatasourcePassword(), 0, userPrincipal.getId(), 6, "");
+							loggerUtil.logsUser(0, userPrincipal.getId(), 6, "");
 							LoggerUtil.desc = "";
-							return new ApiException(CSCInvalidRequest.InvalidCredentialId,
-									"No credential found with the given Id", credentialAlias);
+							return new ApiException(CSCInvalidRequest.InvalidCredentialId, "No credential found with the given Id", credentialAlias);
 						});
 		try {
 			// we know SAD is not empty thanks to annotations in the DTO, but is it valid?
@@ -98,8 +92,7 @@ public class CSCSignaturesService {
 		} catch (Exception e) {
 			log.error("{} (signHash in CSCSignaturesService.class.class): SAD not validated.",
 					SignerError.FailedToValidateSAD.getCode());
-			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
-					this.authProperties.getDatasourcePassword(), 0, userPrincipal.getId(), 6, "");
+			loggerUtil.logsUser(0, userPrincipal.getId(), 6, "");
 			LoggerUtil.desc = "";
 			throw new ApiException(SignerError.FailedToValidateSAD);
 		}
@@ -119,14 +112,12 @@ public class CSCSignaturesService {
 			response.setSignatures(signedHashes);
 			LoggerUtil.desc = LoggerUtil.desc + " | CMS Signed Data Bytes: " + signedHashes;
 			LoggerUtil.desc = LoggerUtil.desc + " | File Name: " + pdfName;
-			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
-					this.authProperties.getDatasourcePassword(), 1, userPrincipal.getId(), 6, LoggerUtil.desc);
+			loggerUtil.logsUser(1, userPrincipal.getId(), 6, LoggerUtil.desc);
 			LoggerUtil.desc = "";
 		} catch (Exception e) {
 			log.error("{} (signHash in CSCSignaturesService.class.class): Failed to sign.",
 					SignerError.FailedSigningData.getCode());
-			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
-					this.authProperties.getDatasourcePassword(), 0, userPrincipal.getId(), 6, "");
+			loggerUtil.logsUser(0, userPrincipal.getId(), 6, "");
 			throw e;
 		}
 		return response;

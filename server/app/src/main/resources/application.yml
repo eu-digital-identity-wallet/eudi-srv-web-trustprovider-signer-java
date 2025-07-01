@@ -17,9 +17,10 @@ server:
 
 spring:
     datasource:
-        url: jdbc:mysql://localhost:3306/assina?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false
+        url: jdbc:mysql://${SPRING_DATASOURCE_SERVER}/${SPRING_DATASOURCE_DATABASE}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false
         driver-class-name: com.mysql.cj.jdbc.Driver
-
+        username: ${SPRING_DATASOURCE_USERNAME}
+        password: ${SPRING_DATASOURCE_PASSWORD}
     jpa:
         show-sql: true
         hibernate:
@@ -30,17 +31,18 @@ spring:
             naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
         properties:
             hibernate:
-                dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+                dialect: org.hibernate.dialect.MySQLDialect
+    config:
+        import: file:.env[.properties]
 
-    profiles:
-        include:
-            - "ejbca"
-            - "auth"
+jwt-config:
+    type: userAuthentication
+    lifetimeMinutes: 600
+    secret: ${AUTH_JWT_TOKEN_SECRET}
 
-assina:
-    auth:
-        type: userAuthentication
-        lifetimeMinutes: 600
+auth:
+    dbEncryptionPassphrase: ${AUTH_DB_ENCRYPTION_PASSPHRASE}
+    dbEncryptionSalt: ${AUTH_DB_ENCRYPTION_SALT}
 
 verifier:
     url: https://verifier-backend.eudiw.dev/ui/presentations
@@ -58,6 +60,7 @@ csc:
     sad:
         type: SAD
         lifetimeMinutes: 5
+        secret: ${AUTH_SAD_TOKEN_SECRET}
     api:
         pageSize: 20 # if a client does not specify maxResults this is the default page size
         maxPageSize: 100 # even if a client does specify maxResults we limit it to this to avoid DOS
@@ -71,8 +74,36 @@ csc:
             - credentials/info
             - credentials/authorize
             - signatures/signHash
+
 logging:
     level:
-        org:
-            springframework:
-                security: INFO
+        root: DEBUG
+        org.springframework.web: DEBUG
+        org.springframework.security: DEBUG
+
+ejbca:
+    cahost: ${EJBCA_HOST}
+    clientP12ArchiveFilepath: ${EJBCA_CLIENT_P12_FILEPATH}
+    clientP12ArchivePassword: ${EJBCA_CLIENT_P12_PASSWORD}
+    managementCA: ${EJBCA_MANAGEMENT_CA}
+    endpoint: /certificate/pkcs10enroll
+    certificateProfileName: ${EJBCA_CERTIFICATE_PROFILE_NAME}
+    endEntityProfileName: ${EJBCA_END_ENTITY_PROFILE_NAME}
+    username: ${EJBCA_USERNAME}
+    password: ${EJBCA_PASSWORD}
+    includeChain: true
+    countries:
+        - country: CZ
+          certificateAuthorityName: PID Issuer CA - CZ 02
+        - country: EE
+          certificateAuthorityName: PID Issuer CA - EE 02
+        - country: EU
+          certificateAuthorityName: PID Issuer CA - EU 02
+        - country: LU
+          certificateAuthorityName: PID Issuer CA - LU 02
+        - country: NL
+          certificateAuthorityName: PID Issuer CA - NL 02
+        - country: PT
+          certificateAuthorityName: PID Issuer CA - PT 02
+        - country: default
+          certificateAuthorityName: PID Issuer CA - UT 02

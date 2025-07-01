@@ -17,89 +17,80 @@
 package eu.europa.ec.eudi.signer.rssp.security;
 
 import static eu.europa.ec.eudi.signer.rssp.common.config.SignerConstants.CSC_URL_ROOT;
-import eu.europa.ec.eudi.signer.rssp.security.openid4vp.OpenId4VPAuthenticationProvider;
 
+import eu.europa.ec.eudi.signer.rssp.common.config.JwtConfigProperties;
+import eu.europa.ec.eudi.signer.rssp.repository.UserRepository;
+import eu.europa.ec.eudi.signer.rssp.security.jwt.JwtTokenAuthenticationFilter;
+import eu.europa.ec.eudi.signer.rssp.security.openid4vp.OpenId4VPAuthenticationProvider;
 import eu.europa.ec.eudi.signer.rssp.security.openid4vp.OpenId4VPUserDetailsService;
+import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.BeanIds;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(securedEnabled = true, jsr250Enabled = true, prePostEnabled = true)
-public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
+public class SpringSecurityConfig {
+    private static final Logger logger = LoggerFactory.getLogger(SpringSecurityConfig.class);
 
-    private final OpenId4VPAuthenticationProvider customOID4VPAuthenticationProvider;
-    private final UserAuthenticationTokenProvider tokenProvider;
-    private final OpenId4VPUserDetailsService customUserOID4VPDetailsService;
-
-    public SpringSecurityConfig(OpenId4VPAuthenticationProvider customAuthenticationProvider, @Autowired UserAuthenticationTokenProvider tokenProvider, @Autowired OpenId4VPUserDetailsService customUserOID4VPDetailsService) {
-        this.customOID4VPAuthenticationProvider = customAuthenticationProvider;
-        this.tokenProvider = tokenProvider;
-        this.customUserOID4VPDetailsService = customUserOID4VPDetailsService;
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, @Autowired JwtTokenAuthenticationFilter jwtTokenAuthenticationFilter) throws Exception {
+        return http
+              .cors(Customizer.withDefaults())
+              .csrf(AbstractHttpConfigurer::disable)
+              .sessionManagement(session ->
+                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+              )
+              .exceptionHandling(exceptions ->
+                    exceptions.authenticationEntryPoint((request, response, exception) -> {
+                        logger.error("Responding with unauthorized error. Message - {}", exception, exception);
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.getWriter().write("Unauthorized");
+                    })
+              )
+              .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/").permitAll()
+                    .requestMatchers("/error").permitAll()
+                    .requestMatchers("/favicon.ico").permitAll()
+                    .requestMatchers("/static/**").permitAll()
+                    .requestMatchers("/resources/**").permitAll()
+                    .requestMatchers("/auth/**").permitAll()
+                    .requestMatchers(CSC_URL_ROOT + "/info").permitAll()
+                    .anyRequest().authenticated()
+              )
+              .addFilterBefore(jwtTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+              .build();
     }
 
     @Bean
-    public TokenAuthenticationFilter tokenAuthenticationFilter() {
-        return new TokenAuthenticationFilter(this.tokenProvider, this.customUserOID4VPDetailsService);
+    public JwtTokenAuthenticationFilter jwtAuthenticationFilter(JwtConfigProperties jwtConfigProperties, OpenId4VPUserDetailsService customUserOID4VPDetailsService){
+        return new JwtTokenAuthenticationFilter(jwtConfigProperties, customUserOID4VPDetailsService);
     }
 
-    @Override
-    public void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
-        authenticationManagerBuilder
-                .authenticationProvider(this.customOID4VPAuthenticationProvider);
+    @Bean
+    public OpenId4VPUserDetailsService userDetailsService(UserRepository userRepository){
+        return new OpenId4VPUserDetailsService(userRepository);
     }
 
-    @Bean(BeanIds.AUTHENTICATION_MANAGER)
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
+    @Bean
+    public OpenId4VPAuthenticationProvider authenticationProvider(OpenId4VPUserDetailsService userDetailsService){
+        return new OpenId4VPAuthenticationProvider(userDetailsService);
     }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .cors()
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .csrf()
-                .disable()
-                // .formLogin()
-                // .disable()
-                // .httpBasic()
-                // .disable()
-                .exceptionHandling()
-                .authenticationEntryPoint(new RestAuthenticationEntryPoint())
-                .and()
-                .authorizeRequests()
-                .antMatchers("/",
-                        "/error",
-                        "/favicon.ico",
-                        "/**/*.png",
-                        "/**/*.gif",
-                        "/**/*.svg",
-                        "/**/*.jpg",
-                        "/**/*.html",
-                        "/**/*.css",
-                        "/**/*.js")
-                .permitAll()
-                .antMatchers("/auth/**") // permit local login
-                .permitAll()
-                .antMatchers(CSC_URL_ROOT + "/info").permitAll()
-                .anyRequest()
-                .authenticated();
-        // Add our custom Token based authentication filter
-        http.addFilterBefore(tokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+    @Bean
+    public AuthenticationManager authenticationManager(OpenId4VPAuthenticationProvider authenticationProvider) {
+        return new ProviderManager(authenticationProvider);
     }
+
 }

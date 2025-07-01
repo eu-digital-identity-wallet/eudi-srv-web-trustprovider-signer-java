@@ -67,8 +67,7 @@ public class VerifierCreatedVariables {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         for (String key : allVariables.keySet()) {
-            sb.append("{ " + key + ": " + allVariables.get(key).getNonce() + " | "
-                    + allVariables.get(key).getPresentation_id() + " }\n");
+            sb.append("{ ").append(key).append(": ").append(allVariables.get(key).getNonce()).append(" | ").append(allVariables.get(key).getPresentation_id()).append(" }\n");
         }
         sb.append("----------------------------------------\n");
         return sb.toString();

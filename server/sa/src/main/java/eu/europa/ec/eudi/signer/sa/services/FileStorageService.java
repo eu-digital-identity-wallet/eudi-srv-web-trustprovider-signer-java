@@ -66,7 +66,7 @@ public class FileStorageService {
         // gets the file name from the original file name (which may contain path info)
         String filename1 = FilenameUtils.getName(file.getOriginalFilename());
 
-        if (filename1 == null || filename1.isEmpty()) {
+        if (filename1.isEmpty()) {
             throw new FileStorageException("Could not store file without a name.");
         }
 

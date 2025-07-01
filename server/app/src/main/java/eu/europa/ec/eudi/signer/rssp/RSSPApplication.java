@@ -16,14 +16,9 @@
 
 package eu.europa.ec.eudi.signer.rssp;
 
-import eu.europa.ec.eudi.signer.rssp.common.config.AppProperties;
-import eu.europa.ec.eudi.signer.rssp.common.config.AuthProperties;
-import eu.europa.ec.eudi.signer.rssp.common.config.CSCProperties;
-import eu.europa.ec.eudi.signer.rssp.common.config.TrustedIssuersCertificatesProperties;
-
-import eu.europa.ec.eudi.signer.rssp.common.config.VerifierProperties;
+import eu.europa.ec.eudi.signer.rssp.common.config.*;
+import eu.europa.ec.eudi.signer.rssp.common.config.JwtConfigProperties;
 import eu.europa.ec.eudi.signer.rssp.ejbca.EJBCAProperties;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.boot.SpringApplication;
@@ -31,12 +26,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.ApplicationPidFileWriter;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
-/** Main Spring Boot application class for Signer application */
-@SpringBootApplication(scanBasePackages = "eu.europa.ec.eudi.signer.rssp")
-@EnableConfigurationProperties({ AppProperties.class, CSCProperties.class, VerifierProperties.class,
-        EJBCAProperties.class, TrustedIssuersCertificatesProperties.class, AuthProperties.class })
+@SpringBootApplication
+@EnableConfigurationProperties({ JwtConfigProperties.class, CSCProperties.class, VerifierProperties.class, EJBCAProperties.class, TrustedIssuersCertificatesProperties.class, AuthProperties.class })
 public class RSSPApplication {
-
     private static final Logger logger = LogManager.getLogger(RSSPApplication.class);
 
     public static void main(String[] args) {

@@ -16,10 +16,11 @@
 
 package eu.europa.ec.eudi.signer.rssp.api.model;
 
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
+
 import java.util.Arrays;
 import java.util.List;
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
 import static java.util.Collections.emptyList;
 
 /**

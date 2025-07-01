@@ -23,7 +23,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Map.Entry;
 
-import eu.europa.ec.eudi.signer.rssp.common.error.ApiException;
+import eu.europa.ec.eudi.signer.rssp.common.config.JwtConfigProperties;
+import eu.europa.ec.eudi.signer.rssp.security.UserPrincipal;
+import eu.europa.ec.eudi.signer.rssp.security.jwt.JwtProvider;
+import eu.europa.ec.eudi.signer.rssp.security.jwt.JwtToken;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -33,19 +36,15 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
 import eu.europa.ec.eudi.signer.rssp.api.model.LoggerUtil;
 import eu.europa.ec.eudi.signer.rssp.api.model.RoleName;
 import eu.europa.ec.eudi.signer.rssp.api.payload.AuthResponse;
-import eu.europa.ec.eudi.signer.rssp.common.config.AuthProperties;
 import eu.europa.ec.eudi.signer.rssp.common.error.SignerError;
 import eu.europa.ec.eudi.signer.rssp.common.error.VPTokenInvalid;
 import eu.europa.ec.eudi.signer.rssp.common.error.VerifiablePresentationVerificationException;
 import eu.europa.ec.eudi.signer.rssp.ejbca.EJBCAService;
 import eu.europa.ec.eudi.signer.rssp.entities.User;
 import eu.europa.ec.eudi.signer.rssp.repository.UserRepository;
-import eu.europa.ec.eudi.signer.rssp.security.UserAuthenticationTokenProvider;
-
 import id.walt.mdoc.doc.MDoc;
 import id.walt.mdoc.issuersigned.IssuerSignedItem;
 
@@ -56,47 +55,26 @@ public class OpenId4VPService {
 
     private final UserRepository repository;
     private final AuthenticationManager authenticationManager;
-    private final UserAuthenticationTokenProvider tokenProvider;
+    private final JwtProvider jwtProvider;
     private final EJBCAService ejbcaService;
-    private final AuthProperties authProperties;
+    private final LoggerUtil loggerUtil;
 
     @Autowired
     public OpenId4VPService(UserRepository repository, AuthenticationManager authenticationManager,
-            UserAuthenticationTokenProvider tokenProvider, EJBCAService ejbcaService, AuthProperties authProperties) {
+                            JwtConfigProperties jwtConfigProperties, EJBCAService ejbcaService, LoggerUtil loggerUtil) {
         this.repository = repository;
         this.authenticationManager = authenticationManager;
-        this.tokenProvider = tokenProvider;
+        this.jwtProvider = new JwtProvider(jwtConfigProperties);
         this.ejbcaService = ejbcaService;
-        this.authProperties = authProperties;
+        this.loggerUtil = loggerUtil;
     }
 
-    public static class UserOIDTemporaryInfo {
-        private final User user;
-        private final String givenName;
-        private final String familyName;
-
-        public UserOIDTemporaryInfo(User user, String givenName, String familyName) {
-            this.user = user;
-            this.givenName = givenName;
-            this.familyName = familyName;
-        }
-
-        public User getUser() {
-            return this.user;
-        }
-
-        public String getGivenName() {
-            return this.givenName;
-        }
-
-        public String getFamilyName() {
-            return this.familyName;
-        }
+    public record UserOIDTemporaryInfo(User user, String givenName, String familyName) {
 
         public String getFullName() {
-            return givenName + " " + familyName;
+                return givenName + " " + familyName;
+            }
         }
-    }
 
     /**
      * Function that allows to load the user from the response of the verifier (VP
@@ -129,7 +107,7 @@ public class OpenId4VPService {
         Map<Integer, String> logsMap = new HashMap<>();
         MDoc document = validator.loadAndVerifyDocumentForVP(logsMap);
         UserOIDTemporaryInfo user = loadUserFromDocument(document);
-        String token = addToDBandCreateJWTToken(user.getUser(), user.getGivenName(), user.getFamilyName(), logsMap);
+        String token = addToDBandCreateJWTToken(user.user(), user.givenName(), user.familyName(), logsMap);
         return new AuthResponse(token);
     }
 
@@ -143,9 +121,6 @@ public class OpenId4VPService {
      * @param logsMap                                  an hash map to load the logs
      *                                                 from the validator
      * @return the user loaded
-     * @throws VerifiablePresentationVerificationException
-     * @throws VPTokenInvalid
-     * @throws NoSuchAlgorithmException
      */
     public User loadUserFromVerifierResponse(String messageFromVerifier, EJBCAService ejbcaService, Map<Integer, String> logsMap)
             throws VerifiablePresentationVerificationException, VPTokenInvalid, NoSuchAlgorithmException, Exception {
@@ -161,7 +136,7 @@ public class OpenId4VPService {
         VPValidator validator = new VPValidator(responseVerifier, VerifierClient.PresentationDefinitionId,
                 VerifierClient.PresentationDefinitionInputDescriptorsId, ejbcaService);
         MDoc document = validator.loadAndVerifyDocumentForVP(logsMap);
-        return loadUserFromDocument(document).getUser();
+        return loadUserFromDocument(document).user();
     }
 
     public UserOIDTemporaryInfo loadUserFromDocument(MDoc document) throws VPTokenInvalid, NoSuchAlgorithmException {
@@ -184,14 +159,6 @@ public class OpenId4VPService {
                 case "issuing_country" -> issuingCountry = el.getElementValue().getValue().toString();
             }
         }
-
-        /*if (!ageOver18) {
-            String logMessage = SignerError.UserNotOver18.getCode()
-                    + "(loadUserFromDocument in OpenId4VPService.class): "
-                    + SignerError.UserNotOver18.getDescription();
-            log.error(logMessage);
-            throw new VPTokenInvalid(SignerError.UserNotOver18, "User must be over 18 to use this program.");
-        }*/
 
         if (familyName == null || givenName == null || birthDate == null || issuingCountry == null) {
             String logMessage = SignerError.VPTokenMissingValues.getCode()
@@ -219,25 +186,40 @@ public class OpenId4VPService {
 
         if (userInDatabase.isEmpty()) {
             for (Entry<Integer, String> l : logsMap.entrySet())
-                LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
-                        this.authProperties.getDatasourcePassword(), 1, userFromVerifierResponse.getId(), l.getKey(),
-                        l.getValue());
+                loggerUtil.logsUser(1, userFromVerifierResponse.getId(), l.getKey(), l.getValue());
 
             LoggerUtil.desc = "PID HASH: " + userFromVerifierResponse.getHash();
-            LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
-                    this.authProperties.getDatasourcePassword(), 1, userFromVerifierResponse.getId(), 4,
-                    LoggerUtil.desc);
+            loggerUtil.logsUser(1, userFromVerifierResponse.getId(), 4, LoggerUtil.desc);
         } else {
             User u = userInDatabase.get();
 
             for (Entry<Integer, String> l : logsMap.entrySet())
-                LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
-                        this.authProperties.getDatasourcePassword(), 1, u.getId(), l.getKey(), l.getValue());
+                loggerUtil.logsUser(1, u.getId(), l.getKey(), l.getValue());
 
             LoggerUtil.desc = "PID HASH: " + u.getHash();
-            LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
-                    this.authProperties.getDatasourcePassword(), 1, u.getId(), 4, LoggerUtil.desc);
+            loggerUtil.logsUser(1, u.getId(), 4, LoggerUtil.desc);
         }
-        return tokenProvider.createToken(authentication);
+        return createToken(authentication);
+    }
+
+    public String createToken(Authentication authentication) {
+        try {
+            if (authentication.getClass().equals(OpenId4VPAuthenticationToken.class)) {
+                UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+                String username = userPrincipal.getUsername();
+                String givenName = userPrincipal.getGivenName();
+                String surname = userPrincipal.getSurname();
+                final JwtToken token = jwtProvider.createToken(username + ";" + givenName + ";" + surname);
+                return token.getRawToken();
+            } else {
+                UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+                String subject = userPrincipal.getUsername();
+                final JwtToken token = jwtProvider.createToken(subject);
+                return token.getRawToken();
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+        return null;
     }
 }

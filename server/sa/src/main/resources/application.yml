@@ -25,13 +25,15 @@ spring:
             max-file-size: -1
             max-request-size: -1
             file-size-threshold: 20KB
+    config:
+        import: file:.env[.properties]
 
 file:
     uploadDir: ./pdf/
     extensions: pdf
 
 rssp:
-    cscBaseUrl: http://localhost:8082/csc/v1
+    cscBaseUrl: ${CSC_BASE_URL}
 
 logging:
     level:

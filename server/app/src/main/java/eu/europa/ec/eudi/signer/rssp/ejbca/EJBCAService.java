@@ -69,7 +69,7 @@ public class EJBCAService {
 
         String certificateAuthorityName = this.ejbcaProperties.getCertificateAuthorityName(countryCode);
         String certificateRequestBody = getJsonBody(certificateRequest, certificateAuthorityName);
-        String postUrl = "https://" + this.ejbcaProperties.getCahost() + "/ejbca/ejbca-rest-api/v1" + this.ejbcaProperties.getEndpoint();
+        String postUrl = "https://" + this.ejbcaProperties.getCaHost() + "/ejbca/ejbca-rest-api/v1" + this.ejbcaProperties.getEndpoint();
 
         // Set up headers
         Map<String, String> headers = new HashMap<>();
@@ -191,7 +191,7 @@ public class EJBCAService {
     // If the value is true then the issuerDN certificate is revoked and cannot be trusted.
     public Boolean revocationStatus(String issuerDN, String serialNumberHex) throws Exception {
         String issuerDNUrlEncode = URLEncoder.encode(issuerDN, StandardCharsets.UTF_8).replace("+", "%20");
-        String getUrl = "https://" + this.ejbcaProperties.getCahost() + "/ejbca/ejbca-rest-api/v1/certificate/"
+        String getUrl = "https://" + this.ejbcaProperties.getCaHost() + "/ejbca/ejbca-rest-api/v1/certificate/"
                 + issuerDNUrlEncode + "/" + serialNumberHex + "/revocationstatus";
 
         // Set up headers

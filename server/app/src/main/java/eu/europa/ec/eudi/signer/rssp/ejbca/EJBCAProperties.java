@@ -17,17 +17,14 @@
 package eu.europa.ec.eudi.signer.rssp.ejbca;
 
 import java.util.List;
-
 import javax.validation.constraints.NotNull;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-// @Configuration
 @ConfigurationProperties(prefix = "ejbca")
 public class EJBCAProperties {
 
     @NotNull
-    private String cahost;
+    private String caHost;
     private String clientP12ArchiveFilepath;
     private String clientP12ArchivePassword;
     private String managementCA;
@@ -70,8 +67,8 @@ public class EJBCAProperties {
         return def;
     }
 
-    public String getCahost() {
-        return cahost;
+    public String getCaHost() {
+        return caHost;
     }
 
     public String getClientP12ArchiveFilepath() {
@@ -110,8 +107,8 @@ public class EJBCAProperties {
         return includeChain;
     }
 
-    public void setCahost(String cahost) {
-        this.cahost = cahost;
+    public void setCaHost(String caHost) {
+        this.caHost = caHost;
     }
 
     public void setClientP12ArchiveFilepath(String clientP12ArchiveFilepath) {

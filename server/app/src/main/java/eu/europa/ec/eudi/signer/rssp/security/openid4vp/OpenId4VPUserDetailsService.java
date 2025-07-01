@@ -16,8 +16,7 @@
 
 package eu.europa.ec.eudi.signer.rssp.security.openid4vp;
 
-import javax.transaction.Transactional;
-
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -32,12 +31,9 @@ import eu.europa.ec.eudi.signer.rssp.security.UserPrincipal;
  * Custom user details service for loading the user by username or email during
  * authenticated requests
  */
-@Service
 public class OpenId4VPUserDetailsService implements UserDetailsService {
-
     private final UserRepository userRepository;
 
-    @Autowired
     public OpenId4VPUserDetailsService(UserRepository userRepository){
         this.userRepository = userRepository;
     }

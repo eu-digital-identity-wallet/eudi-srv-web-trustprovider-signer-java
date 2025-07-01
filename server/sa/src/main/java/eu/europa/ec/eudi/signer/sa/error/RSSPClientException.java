@@ -42,10 +42,10 @@ public class RSSPClientException extends RuntimeException implements ApiError {
     }
 
     public RSSPClientException(ClientResponse response) {
-        super(response.statusCode().getReasonPhrase(), response.createException().block());
+        super(response.statusCode().toString(), response.createException().block());
         this.code = "Unexpected Client Error";
         this.httpCode = response.statusCode().value();
-        this.description = response.statusCode().getReasonPhrase();
+        this.description = response.statusCode().toString();
     }
 
     @Override

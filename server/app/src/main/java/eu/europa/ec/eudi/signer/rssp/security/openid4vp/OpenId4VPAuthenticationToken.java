@@ -39,6 +39,7 @@ public class OpenId4VPAuthenticationToken extends AbstractAuthenticationToken {
         this.fullName = givenName + " " + surname;
         this.principal = hash;
         this.credentials = null;
+        super.setAuthenticated(true);
     }
 
     public OpenId4VPAuthenticationToken(Object userPrincipal, Collection<? extends GrantedAuthority> authorities) {
@@ -50,6 +51,7 @@ public class OpenId4VPAuthenticationToken extends AbstractAuthenticationToken {
         this.givenName = user.getGivenName();
         this.surname = user.getSurname();
         this.fullName = user.getName();
+        super.setAuthenticated(true);
     }
 
     @Override

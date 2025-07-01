@@ -47,13 +47,13 @@ public class CredentialController {
 	private static final Logger logger = LogManager.getLogger(CredentialController.class);
 	private final CredentialService credentialService;
 	private final UserService userService;
-	private final AuthProperties authProperties;
+	private final LoggerUtil loggerUtil;
 
-	public CredentialController(@Autowired final CredentialService credentialService,
-			@Autowired final UserService userService, @Autowired AuthProperties authProperties) {
+	public CredentialController(@Autowired final CredentialService credentialService, @Autowired final UserService userService,
+								@Autowired LoggerUtil loggerUtil) {
 		this.credentialService = credentialService;
 		this.userService = userService;
-		this.authProperties = authProperties;
+		this.loggerUtil = loggerUtil;
 	}
 
 	/**
@@ -95,29 +95,21 @@ public class CredentialController {
 			KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 			X509EncodedKeySpec pKeySpec = new X509EncodedKeySpec(credential.getPublicKeyHSM());
 			RSAPublicKey pk = (RSAPublicKey) keyFactory.generatePublic(pKeySpec);
-			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
-					this.authProperties.getDatasourcePassword(), 1, owner, 3,
-					"Public Key info - Algorithm: " + pk.getAlgorithm() + " " + pk.getModulus().bitLength()
-							+ " bits | Modulus: " + pk.getModulus() + " | Exponent: " + pk.getPublicExponent());
+			String info = "Public Key info - Algorithm: " + pk.getAlgorithm() + " " + pk.getModulus().bitLength()
+				  + " bits | Modulus: " + pk.getModulus() + " | Exponent: " + pk.getPublicExponent();
+			loggerUtil.logsUser(1, owner, 3, info);
 
-			LoggerUtil.desc = "Certificate Alias: " + credential.getAlias()
-					+ " | Subject DN: " + credential.getSubjectDN()
-					+ " | Issuer DN: " + credential.getIssuerDN()
-					+ " | Valid From: " + credential.getValidFrom()
+			String info2 = "Certificate Alias: " + credential.getAlias() + " | Subject DN: " + credential.getSubjectDN()
+					+ " | Issuer DN: " + credential.getIssuerDN() + " | Valid From: " + credential.getValidFrom()
 					+ " | Valid To: " + credential.getValidTo();
-			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
-					this.authProperties.getDatasourcePassword(), 1, id, 1, LoggerUtil.desc);
+			loggerUtil.logsUser(1, id, 1, info2);
 			return new ResponseEntity<>(HttpStatus.CREATED);
 		} catch (ApiException e) {
-			// if the aux functions sent an api exception, the logs were already written
-			// the ApiException also have a set message to be shown to the user
 			return ResponseEntity.badRequest().body(e.getMessage());
 		} catch (Exception e) {
-			String logMessage = SignerError.UnexpectedError.getCode()
-					+ " (createCredential in CredentialController.class) " + e.getMessage();
+			String logMessage = SignerError.UnexpectedError.getCode() + " (createCredential in CredentialController.class) " + e.getMessage();
 			logger.error(logMessage);
-			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
-					this.authProperties.getDatasourcePassword(), 0, id, 1, "");
+			loggerUtil.logsUser(0, id, 1, "");
 			return ResponseEntity.badRequest().body(SignerError.UnexpectedError.getFormattedMessage());
 		}
 	}
@@ -139,7 +131,7 @@ public class CredentialController {
 	public ResponseEntity<?> deleteCredential(@CurrentUser UserPrincipal userPrincipal,
 			@PathVariable(value = "alias") String alias) {
 		try {
-			logger.info("Trying to delete the credential " + alias);
+			logger.info("Trying to delete the credential {}", alias);
 			String ownerId = userPrincipal.getId();
 			credentialService.deleteCredentials(ownerId, alias);
 			return ResponseEntity.ok().build();
@@ -151,8 +143,7 @@ public class CredentialController {
 			String logMessage = SignerError.UnexpectedError.getCode()
 					+ " (deleteCredential in CredentialController.class) " + e.getMessage();
 			logger.error(logMessage);
-			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
-					this.authProperties.getDatasourcePassword(), 0, userPrincipal.getId(), 2, "");
+			loggerUtil.logsUser(0, userPrincipal.getId(), 2, "");
 			return ResponseEntity.badRequest().body(SignerError.UnexpectedError.getFormattedMessage());
 		}
 	}

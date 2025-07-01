@@ -44,7 +44,7 @@ import eu.europa.ec.eudi.signer.sa.payload.SignedFileResponse;
 import eu.europa.ec.eudi.signer.sa.services.SigningService;
 import eu.europa.ec.eudi.signer.sa.services.FileStorageService;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;

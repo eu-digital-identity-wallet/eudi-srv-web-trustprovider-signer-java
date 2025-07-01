@@ -26,8 +26,13 @@
         <version>2024.04.2-Demo</version>
     </parent>
     <artifactId>csc</artifactId>
-    <name>csc</name>
-    <packaging>jar</packaging>
+
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring-boot.repackage.skip>true</spring-boot.repackage.skip>
+    </properties>
 
     <dependencies>
         <dependency>

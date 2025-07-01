@@ -30,14 +30,12 @@ public class VPValidatorTest {
 
     private JSONObject setVPTokenInString(String vp_token_cbor_hex, String presentation_definition_id,
             String presentation_definition_input_descriptors_id) throws JSONException {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("{\"vp_token\":\"");
-        stringBuilder.append(vp_token_cbor_hex);
-        stringBuilder.append("\",\"presentation_submission\":{\"id\":\"pid-res\",\"definition_id\":\"")
-                .append(presentation_definition_id);
-        stringBuilder.append("\",\"descriptor_map\":[{\"id\":\"").append(presentation_definition_input_descriptors_id)
-                .append("\",\"format\":\"mso_mdoc\",\"path\":\"$\"}]}}");
-        String message = stringBuilder.toString();
+		String message = "{\"vp_token\":\"" +
+			  vp_token_cbor_hex +
+			  "\",\"presentation_submission\":{\"id\":\"pid-res\",\"definition_id\":\"" +
+			  presentation_definition_id +
+			  "\",\"descriptor_map\":[{\"id\":\"" + presentation_definition_input_descriptors_id +
+			  "\",\"format\":\"mso_mdoc\",\"path\":\"$\"}]}}";
 
         return new JSONObject(message);
     }
@@ -50,10 +48,8 @@ public class VPValidatorTest {
             String vp_from_verifier = "o2d2ZXJzaW9uYzEuMGlkb2N1bWVudHOBo2dkb2NUeXBleBhldS5ldXJvcGEuZWMuZXVkaXcucGlkLjFsaXNzdWVyU2lnbmVkompuYW1lU3BhY2VzoXgYZXUuZXVyb3BhLmVjLmV1ZGl3LnBpZC4xhtgYWGmkZnJhbmRvbVgggCpS0xCfgPmPD2zFhQNieYOwZsUPiQoHzpUCI7gWH7BoZGlnZXN0SUQEbGVsZW1lbnRWYWx1ZWlSb2RyaWd1ZXNxZWxlbWVudElkZW50aWZpZXJrZmFtaWx5X25hbWXYGFhmpGZyYW5kb21YIIvNXv-shbvhLmg6RLHGDOUpKNcV9r7MocrpbX88RjQqaGRpZ2VzdElEAGxlbGVtZW50VmFsdWVnTWFyaWFuYXFlbGVtZW50SWRlbnRpZmllcmpnaXZlbl9uYW1l2BhYbKRmcmFuZG9tWCBOb54F3cjnU8BMqtl1Ha9mjYGSsE1G_9aBiwpCr41MKmhkaWdlc3RJRAFsZWxlbWVudFZhbHVl2QPsajIwMDEtMDMtMTlxZWxlbWVudElkZW50aWZpZXJqYmlydGhfZGF0ZdgYWGCkZnJhbmRvbVggCVL_ymTwJKhV0WktqqsFnK3ysLDCHM4ADSIfiDwsLt9oZGlnZXN0SUQGbGVsZW1lbnRWYWx1ZfVxZWxlbWVudElkZW50aWZpZXJrYWdlX292ZXJfMTjYGFh1pGZyYW5kb21YIFdIw3WsKTt_uFlXa8sRmO_EiNCwW-uU35bM2Pwx2x7IaGRpZ2VzdElEB2xlbGVtZW50VmFsdWVvVGVzdCBQSUQgaXNzdWVycWVsZW1lbnRJZGVudGlmaWVycWlzc3VpbmdfYXV0aG9yaXR52BhYZqRmcmFuZG9tWCD1ZWNZV_hDbwzWvokzSsB3LQYW7GPaEQLSxD_qXCKNpWhkaWdlc3RJRAJsZWxlbWVudFZhbHVlYkZDcWVsZW1lbnRJZGVudGlmaWVyb2lzc3VpbmdfY291bnRyeWppc3N1ZXJBdXRohEOhASahGCFZAugwggLkMIICaqADAgECAhRyMm32Ywiae1APjD8mpoXLwsLSyjAKBggqhkjOPQQDAjBcMR4wHAYDVQQDDBVQSUQgSXNzdWVyIENBIC0gVVQgMDExLTArBgNVBAoMJEVVREkgV2FsbGV0IFJlZmVyZW5jZSBJbXBsZW1lbnRhdGlvbjELMAkGA1UEBhMCVVQwHhcNMjMwOTAyMTc0MjUxWhcNMjQxMTI1MTc0MjUwWjBUMRYwFAYDVQQDDA1QSUQgRFMgLSAwMDAxMS0wKwYDVQQKDCRFVURJIFdhbGxldCBSZWZlcmVuY2UgSW1wbGVtZW50YXRpb24xCzAJBgNVBAYTAlVUMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAESQR81BwtG6ZqjrWQYWWw5pPeGxzlr3ptXIr3ftI93rJ_KvC9TAgqJTakJAj2nV4yQGLJl0tw-PhwfbHDrIYsWKOCARAwggEMMB8GA1UdIwQYMBaAFLNsuJEXHNekGmYxh0Lhi8BAzJUbMBYGA1UdJQEB_wQMMAoGCCuBAgIAAAECMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHBzOi8vcHJlcHJvZC5wa2kuZXVkaXcuZGV2L2NybC9waWRfQ0FfVVRfMDEuY3JsMB0GA1UdDgQWBBSB7_ScXIMKUKZGvvdQeFpTPj_YmzAOBgNVHQ8BAf8EBAMCB4AwXQYDVR0SBFYwVIZSaHR0cHM6Ly9naXRodWIuY29tL2V1LWRpZ2l0YWwtaWRlbnRpdHktd2FsbGV0L2FyY2hpdGVjdHVyZS1hbmQtcmVmZXJlbmNlLWZyYW1ld29yazAKBggqhkjOPQQDAgNoADBlAjBF-tqi7y2VU-u0iETYZBrQKp46jkord9ri9B55Xy8tkJsD8oEJlGtOLZKDrX_BoYUCMQCbnk7tUBCfXw63ACzPmLP-5BFAfmXuMPsBBL7Wc4Lqg94fXMSI5hAXZAEyJ0NATQpZAl3YGFkCWKZnZG9jVHlwZXgYZXUuZXVyb3BhLmVjLmV1ZGl3LnBpZC4xZ3ZlcnNpb25jMS4wbHZhbGlkaXR5SW5mb6Nmc2lnbmVkwHQyMDI0LTAzLTE0VDEyOjQ1OjU4Wml2YWxpZEZyb23AdDIwMjQtMDMtMTRUMTI6NDU6NThaanZhbGlkVW50aWzAdDIwMjQtMDYtMTJUMDA6MDA6MDBabHZhbHVlRGlnZXN0c6F4GGV1LmV1cm9wYS5lYy5ldWRpdy5waWQuMagAWCAYu8laQ2gSMxNaN9U5QHjVYRM4YmsH5IjmZ78A_ko5rgFYIITEUHYCkJin4kegSfhfywqmIulzV64aaN4bBB_fFmtwAlggX3ZenlNuZ82FwTJ6B3pXHNRN2rPPp-_MzM9UcRAbNFMDWCBjfPdUXpQQrzl547MjZ80ZSPaCkKoJmoWTNhlEwoodjQRYIG1U-AMrIHwCA1UI9rcSSOvQtVahbGSaiV1DivEGwpUoBVggi-SxcXysAZwlghLqnrImAOqzKBTEqrWfGStpyeytf80GWCA8HQSd-zlLhWSPrEaZKcubpVCZ9CzbwTphuSEj1fKUAgdYIA_8siSHso4_-z4RE4rH4mHLyQvaQgRxUeEQ8409FVMIbWRldmljZUtleUluZm-haWRldmljZUtleaQBAiABIVggU8-tu3KhBhsN4j8hEnytHCvFSRY7fZa1ZBZ85FDhWOsiWCAjoQopDY8VYUFL9V5OOs_BCuanfHstARFcBSCYSjLuIm9kaWdlc3RBbGdvcml0aG1nU0hBLTI1NlhAB0EIHqYq27qIkuDxAUKGsgq91adUAp2n3CiqRnJmmV_nJHO5cs6bS4vEkLfuAeZeoYBNq01ZXPsr0TRfizx8B2xkZXZpY2VTaWduZWSiam5hbWVTcGFjZXPYGEGgamRldmljZUF1dGihb2RldmljZVNpZ25hdHVyZYRDoQEmoPZYQFcqp8k7g4ai3Gis3RdmuJJH6sFxCEf7OkTYUC07wMSShIqyG26OpRtgL_a8-8oXbteNIxp3TMKS_Sl5npIWdCtmc3RhdHVzAA";
             String presentation_definition_id = "32f54163-7166-48f1-93d8-ff217bdb0653";
             String presentation_definition_input_descriptors_id = "eudi_pid";
-            JSONObject vp_json_object = setVPTokenInString(vp_from_verifier, presentation_definition_id,
-                    presentation_definition_input_descriptors_id);
-            vp_validator = new VPValidator(vp_json_object, presentation_definition_id,
-                    presentation_definition_input_descriptors_id, this.ejbcaService);
+            JSONObject vp_json_object = setVPTokenInString(vp_from_verifier, presentation_definition_id, presentation_definition_input_descriptors_id);
+            vp_validator = new VPValidator(vp_json_object, presentation_definition_id, presentation_definition_input_descriptors_id, this.ejbcaService);
         } catch (Exception e) {
             Assert.assertNull(e);
         }
@@ -140,8 +136,7 @@ public class VPValidatorTest {
         CBORObject cborObject = CBORObject.DecodeFromBytes(bytesCBOR);
         cborObject.set("status", CBORObject.FromInt32(10));
         byte[] bytes = cborObject.EncodeToBytes();
-        String json = Base64.getUrlEncoder().encodeToString(bytes);
-        return json;
+		return Base64.getUrlEncoder().encodeToString(bytes);
     }
 
     @Test
@@ -313,8 +308,7 @@ public class VPValidatorTest {
         documents_cbor.set(0, document_cbor);
         vp_token_cbor.set("documents", documents_cbor);
         byte[] bytes = vp_token_cbor.EncodeToBytes();
-        String json = Base64.getUrlEncoder().encodeToString(bytes);
-        return json;
+		return Base64.getUrlEncoder().encodeToString(bytes);
     }
 
     @Test
@@ -346,7 +340,7 @@ public class VPValidatorTest {
         } catch (Exception e) {
             Assert.assertNotNull(e);
             Assert.assertEquals(VerifiablePresentationVerificationException.class, e.getClass());
-            VerifiablePresentationVerificationException exp = (VerifiablePresentationVerificationException) e;
+			VerifiablePresentationVerificationException exp = (VerifiablePresentationVerificationException) e;
             Assert.assertEquals(VerifiablePresentationVerificationException.Integrity, exp.getType());
             Assert.assertEquals(
                     "Verification of the Verifiable Presentation Failed: The digest of the IssuerSignedItems are not equal to the digests in MSO.",
@@ -355,7 +349,6 @@ public class VPValidatorTest {
         Assert.assertNull(document);
     }
 
-    // Verify DocType Fail
     private String changeDoctypeInDocuments(String vp_token, String newDocType) throws JSONException {
         byte[] bytesCBOR = Base64.getUrlDecoder().decode(vp_token);
         CBORObject cborObject = CBORObject.DecodeFromBytes(bytesCBOR);
@@ -365,8 +358,7 @@ public class VPValidatorTest {
         documents.set(0, document);
         cborObject.set("documents", documents);
         byte[] bytes = cborObject.EncodeToBytes();
-        String json = Base64.getUrlEncoder().encodeToString(bytes);
-        return json;
+		return Base64.getUrlEncoder().encodeToString(bytes);
     }
 
     @Test

@@ -21,31 +21,21 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import eu.europa.ec.eudi.signer.csc.error.CSCInvalidRequest;
-import eu.europa.ec.eudi.signer.rssp.common.config.AuthProperties;
 import eu.europa.ec.eudi.signer.rssp.common.config.CSCProperties;
 import eu.europa.ec.eudi.signer.rssp.common.config.CSCProperties.Sad;
 import eu.europa.ec.eudi.signer.rssp.common.error.ApiException;
 import eu.europa.ec.eudi.signer.rssp.security.jwt.JwtProvider;
-import eu.europa.ec.eudi.signer.rssp.security.jwt.JwtProviderConfig;
 import eu.europa.ec.eudi.signer.rssp.security.jwt.JwtToken;
 
 @Service
 public class CSCSADProvider {
-
     private static final Logger log = LoggerFactory.getLogger(CSCSADProvider.class);
-
-    private JwtProvider jwtProvider;
+    private final JwtProvider jwtProvider;
     private final long lifetimeSeconds;
 
-    public CSCSADProvider(CSCProperties cscProperties, AuthProperties authProperties) {
+    public CSCSADProvider(CSCProperties cscProperties) {
         Sad sadConfig = cscProperties.getSad();
-
-        JwtProviderConfig jwtProviderConfig = new JwtProviderConfig();
-        jwtProviderConfig.setLifetimeMinutes(sadConfig.getLifetimeMinutes());
-        jwtProviderConfig.setType(sadConfig.getType());
-        jwtProviderConfig.setTokenSecret(authProperties.getSadTokenSecret());
-        jwtProvider = new JwtProvider(jwtProviderConfig);
-
+        jwtProvider = new JwtProvider(sadConfig);
         lifetimeSeconds = sadConfig.getLifetimeMinutes() * 60;
     }
 

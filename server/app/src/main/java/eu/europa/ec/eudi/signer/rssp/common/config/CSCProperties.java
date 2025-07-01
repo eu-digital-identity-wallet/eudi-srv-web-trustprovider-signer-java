@@ -21,7 +21,6 @@ import org.springframework.context.annotation.PropertySource;
 
 import eu.europa.ec.eudi.signer.csc.model.AbstractInfo;
 
-@PropertySource("file:application.yml")
 @ConfigurationProperties(prefix = "csc")
 public class CSCProperties {
 
@@ -41,7 +40,46 @@ public class CSCProperties {
     public static class Info extends AbstractInfo {
     }
 
-    public static class Crypto extends CryptoConfig {
+    public static class Crypto {
+        private String keyAlgorithm;
+        private int keySize;
+        private String signatureAlgorithm;
+
+        /**
+         * Key generation algorithm name
+         * Example: "RSA"
+         */
+        public String getKeyAlgorithm() {
+            return keyAlgorithm;
+        }
+
+        public void setKeyAlgorithm(String keyAlgorithm) {
+            this.keyAlgorithm = keyAlgorithm;
+        }
+
+        /**
+         * Certificate Signature algorithm name: must correspond with the key algorithm
+         * Example "SHA256WithRSA" (corresponds with "RSA")
+         */
+        public String getSignatureAlgorithm() {
+            return signatureAlgorithm;
+        }
+
+        public void setSignatureAlgorithm(String signatureAlgorithm) {
+            this.signatureAlgorithm = signatureAlgorithm;
+        }
+
+        /**
+         * Key size in bits
+         * Example: 2048
+         */
+        public int getKeySize() {
+            return keySize;
+        }
+
+        public void setKeySize(int keySize) {
+            this.keySize = keySize;
+        }
     }
 
     public static class Sad extends TokenCommonConfig {
@@ -68,7 +106,7 @@ public class CSCProperties {
         }
     }
 
-    public CryptoConfig getCrypto() {
+    public Crypto getCrypto() {
         return crypto;
     }
 

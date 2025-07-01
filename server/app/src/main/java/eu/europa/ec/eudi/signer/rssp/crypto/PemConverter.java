@@ -16,12 +16,11 @@
 
 package eu.europa.ec.eudi.signer.rssp.crypto;
 
+import eu.europa.ec.eudi.signer.rssp.common.config.CSCProperties;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.openssl.*;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
-
-import eu.europa.ec.eudi.signer.rssp.common.config.CryptoConfig;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -32,7 +31,7 @@ import java.security.cert.X509Certificate;
 
 public class PemConverter {
 
-    public PemConverter(CryptoConfig config) {
+    public PemConverter() {
         // Make sure the BC Provider is available
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
     }

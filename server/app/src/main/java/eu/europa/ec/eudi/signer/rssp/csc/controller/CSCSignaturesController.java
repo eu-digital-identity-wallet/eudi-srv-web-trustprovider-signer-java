@@ -99,7 +99,6 @@ public class CSCSignaturesController {
 			@CurrentUser UserPrincipal userPrincipal,
 			@Valid @RequestBody CSCSignaturesSignHashRequest signHashRequest) {
 
-		CSCSignaturesSignHashResponse response = signaturesService.signHash(userPrincipal, signHashRequest);
-		return response;
+		return signaturesService.signHash(userPrincipal, signHashRequest);
 	}
 }

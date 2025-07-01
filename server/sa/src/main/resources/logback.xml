@@ -17,11 +17,6 @@
 
 <configuration>
     <property name="LOGS" value="./logs" />
-<!--    <logger name="org.springframework" level="DEBUG" />-->
-<!--    <logger name="org.springframework.transaction" level="DEBUG" />-->
-
-<!--    <logger name="org.springframework.web.servlet.mvc" level="DEBUG" />-->
-
 
     <appender name="Console"
               class="ch.qos.logback.core.ConsoleAppender">
@@ -37,7 +32,7 @@
         <file>${LOGS}/assina-sa-logger.log</file>
         <encoder
                 class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <Pattern>%d %p %C{1.} [%t] %m%n</Pattern>
+            <Pattern>%d %p %C{1} [%t] %m%n</Pattern>
         </encoder>
 
         <rollingPolicy
