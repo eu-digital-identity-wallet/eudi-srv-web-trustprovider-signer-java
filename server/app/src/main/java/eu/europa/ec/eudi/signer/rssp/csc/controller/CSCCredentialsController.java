@@ -34,7 +34,7 @@ import eu.europa.ec.eudi.signer.rssp.common.error.VerifiablePresentationVerifica
 import eu.europa.ec.eudi.signer.rssp.csc.services.CSCCredentialsService;
 import eu.europa.ec.eudi.signer.rssp.security.CurrentUser;
 import eu.europa.ec.eudi.signer.rssp.security.UserPrincipal;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 /**
  * Credentials endpoints from:
@@ -94,6 +94,7 @@ public class CSCCredentialsController {
 			SignerError error = (SignerError) e.getApiError();
 			return ResponseEntity.badRequest().body(error.getFormattedMessage() + " (" + e.getMessage() + ")");
 		} catch (Exception e) {
+			e.printStackTrace();
 			String logMessage = SignerError.UnexpectedError.getCode() + ": " + e.getMessage();
 			log.error(logMessage);
 			loggerUtil.logsUser(0, userPrincipal.getId(), 6, "");

@@ -27,7 +27,7 @@ import org.springframework.boot.context.ApplicationPidFileWriter;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @SpringBootApplication
-@EnableConfigurationProperties({ JwtConfigProperties.class, CSCProperties.class, VerifierProperties.class, EJBCAProperties.class, TrustedIssuersCertificatesProperties.class, AuthProperties.class })
+@EnableConfigurationProperties({ JwtConfigProperties.class, CSCProperties.class, VerifierProperties.class, EJBCAProperties.class, TrustedIssuersCertificatesProperties.class, AuthProperties.class, SADProperties.class })
 public class RSSPApplication {
     private static final Logger logger = LogManager.getLogger(RSSPApplication.class);
 

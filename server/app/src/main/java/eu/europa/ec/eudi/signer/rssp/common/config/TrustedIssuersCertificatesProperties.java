@@ -26,7 +26,7 @@ import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 @ConfigurationProperties(prefix = "trusted-issuers")
 public class TrustedIssuersCertificatesProperties {

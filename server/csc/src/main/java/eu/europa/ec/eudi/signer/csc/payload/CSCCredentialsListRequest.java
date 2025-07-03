@@ -16,7 +16,7 @@
 
 package eu.europa.ec.eudi.signer.csc.payload;
 
-import javax.validation.constraints.Null;
+import jakarta.validation.constraints.Null;
 
 /**
  * Body for request of credentials/list - a list, possibly paginated, of

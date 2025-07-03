@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 
 import eu.europa.ec.eudi.signer.csc.error.CSCInvalidRequest;
 import eu.europa.ec.eudi.signer.rssp.common.config.CSCProperties;
-import eu.europa.ec.eudi.signer.rssp.common.config.CSCProperties.Sad;
+import eu.europa.ec.eudi.signer.rssp.common.config.SADProperties;
 import eu.europa.ec.eudi.signer.rssp.common.error.ApiException;
 import eu.europa.ec.eudi.signer.rssp.security.jwt.JwtProvider;
 import eu.europa.ec.eudi.signer.rssp.security.jwt.JwtToken;
@@ -33,10 +33,9 @@ public class CSCSADProvider {
     private final JwtProvider jwtProvider;
     private final long lifetimeSeconds;
 
-    public CSCSADProvider(CSCProperties cscProperties) {
-        Sad sadConfig = cscProperties.getSad();
-        jwtProvider = new JwtProvider(sadConfig);
-        lifetimeSeconds = sadConfig.getLifetimeMinutes() * 60;
+    public CSCSADProvider(CSCProperties cscProperties, SADProperties sadProperties) {
+		jwtProvider = new JwtProvider(sadProperties);
+        lifetimeSeconds = sadProperties.getLifetimeMinutes() * 60;
     }
 
     public String createSAD(String credentialId) {

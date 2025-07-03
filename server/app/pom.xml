@@ -33,12 +33,23 @@
 
     <repositories>
         <repository>
-            <id>waltid</id>
-            <name>walt.id</name>
-            <url>https://maven.walt.id/repository/waltid/</url>
+            <id>reposilite-repository-releases</id>
+            <name>Reposilite Repository</name>
+            <url>https://maven.waltid.dev/releases</url>
         </repository>
     </repositories>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>eu.europa.ec.joinup.sd-dss</groupId>
+                <artifactId>dss-bom</artifactId>
+                <version>6.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>eu.europa.ec.eudi.signer.app</groupId>
@@ -48,9 +59,9 @@
         
         <!--Validation of the VP Token: WaltId and Dependencies-->
         <dependency>
-            <groupId>id.walt</groupId>
-            <artifactId>waltid-mdoc-jvm</artifactId>
-            <version>1.2312081100.0</version>
+            <groupId>id.walt.mdoc-credentials</groupId>
+            <artifactId>waltid-mdoc-credentials-jvm</artifactId>
+            <version>0.12.0</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -60,7 +71,7 @@
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-datetime-jvm</artifactId>
-            <version>0.4.0</version>
+            <version>0.6.2</version>
         </dependency>
         <dependency>
             <groupId>com.augustcellars.cose</groupId>
@@ -79,34 +90,22 @@
         <dependency>
             <groupId>eu.europa.ec.joinup.sd-dss</groupId>
             <artifactId>dss-pades</artifactId>
-            <version>${dss.version}</version>
+            <version>6.0</version>
         </dependency>
         <dependency>
             <groupId>eu.europa.ec.joinup.sd-dss</groupId>
             <artifactId>dss-pades-pdfbox</artifactId>
-            <version>${dss.version}</version>
+            <version>6.0</version>
         </dependency>
         <dependency>
             <groupId>eu.europa.ec.joinup.sd-dss</groupId>
             <artifactId>dss-utils-apache-commons</artifactId>
-            <version>${dss.version}</version>
+            <version>6.0</version>
         </dependency>
         <dependency>
             <groupId>eu.europa.ec.joinup.sd-dss</groupId>
             <artifactId>validation-policy</artifactId>
-            <version>${dss.version}</version>
-        </dependency>
-
-        <!--Bouncy Castle-->
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk18on</artifactId>
-            <version>1.78.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcpkix-jdk18on</artifactId>
-            <version>1.78.1</version>
+            <version>6.0</version>
         </dependency>
 
         <!--CBOR Dependencies-->
@@ -121,37 +120,13 @@
             <version>5.0.0-alpha1</version>
         </dependency>
 
-
         <!--Database-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
             <version>3.3.0</version>
         </dependency>
-        <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-        </dependency>
 
-        <!--JWToken: used by signer to generate and validate its own JWTs between client and server-->
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-api</artifactId>
-            <version>0.11.5</version>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-impl</artifactId>
-            <version>0.11.5</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-jackson</artifactId>
-            <version>0.11.5</version>
-            <scope>runtime</scope>
-        </dependency>
-        
         <!--Others-->
         <dependency>
             <groupId>org.json</groupId>
@@ -163,17 +138,12 @@
             <artifactId>httpclient</artifactId>
             <version>4.5.13</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.pdfbox</groupId>
-            <artifactId>pdfbox</artifactId>
-            <version>2.0.24</version>
-        </dependency>
 
         <!--Spring Boot:-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
-            <version>2.3.1.RELEASE</version>
+            <version>3.3.0</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -225,6 +195,12 @@
             <artifactId>spring-security-test</artifactId>
             <version>5.3.4.RELEASE</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <version>3.0.2</version>
         </dependency>
     </dependencies>
 </project>

@@ -16,8 +16,21 @@
 
 package eu.europa.ec.eudi.signer.rssp.common.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "jwt-config")
+@ConfigurationProperties(prefix = "assina")
 public class JwtConfigProperties extends TokenCommonConfig {
+	@Value("${auth.jwtTokenSecret}")
+	private String secret;
+
+	@Override
+	public String getSecret() {
+		return secret;
+	}
+
+	@Override
+	public void setSecret(String secret) {
+		this.secret = secret;
+	}
 }

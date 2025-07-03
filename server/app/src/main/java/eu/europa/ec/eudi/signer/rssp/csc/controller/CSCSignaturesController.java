@@ -29,7 +29,7 @@ import eu.europa.ec.eudi.signer.rssp.csc.services.CSCSignaturesService;
 import eu.europa.ec.eudi.signer.rssp.security.CurrentUser;
 import eu.europa.ec.eudi.signer.rssp.security.UserPrincipal;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 /**
  * Signatures endpoints from:

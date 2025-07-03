@@ -17,7 +17,7 @@
 package eu.europa.ec.eudi.signer.rssp.ejbca;
 
 import java.util.List;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "ejbca")

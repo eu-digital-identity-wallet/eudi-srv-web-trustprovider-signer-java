@@ -34,7 +34,7 @@ import eu.europa.ec.eudi.signer.rssp.entities.User;
 import eu.europa.ec.eudi.signer.rssp.crypto.CryptoService;
 import eu.europa.ec.eudi.signer.rssp.security.UserPrincipal;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

@@ -140,23 +140,22 @@ public class OpenId4VPService {
     }
 
     public UserOIDTemporaryInfo loadUserFromDocument(MDoc document) throws VPTokenInvalid, NoSuchAlgorithmException {
-        List<IssuerSignedItem> l = document.getIssuerSignedItems(document.getDocType().getValue());
+        String docType = document.getDocType().getValue();
+        List<IssuerSignedItem> l = document.getIssuerSignedItems(docType);
 
         String familyName = null;
         String givenName = null;
         String birthDate = null;
         String issuingCountry = null;
         String issuanceAuthority = null;
-        // boolean ageOver18 = false;
 
         for (IssuerSignedItem el : l) {
             switch (el.getElementIdentifier().getValue()) {
-                case "family_name" -> familyName = el.getElementValue().getValue().toString();
-                case "given_name" -> givenName = el.getElementValue().getValue().toString();
-                case "birth_date" -> birthDate = el.getElementValue().getValue().toString();
-                // case "age_over_18" -> ageOver18 = (boolean) el.getElementValue().getValue();
-                case "issuing_authority" -> issuanceAuthority = el.getElementValue().getValue().toString();
-                case "issuing_country" -> issuingCountry = el.getElementValue().getValue().toString();
+                case "family_name" -> familyName = el.getElementValue().getInternalValue().toString();
+                case "given_name" -> givenName = el.getElementValue().getInternalValue().toString();
+                case "birth_date" -> birthDate = el.getElementValue().getInternalValue().toString();
+                case "issuing_authority" -> issuanceAuthority = el.getElementValue().getInternalValue().toString();
+                case "issuing_country" -> issuingCountry = el.getElementValue().getInternalValue().toString();
             }
         }
 
