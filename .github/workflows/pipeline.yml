@@ -1,4 +1,4 @@
-name: rQES QTSP Image Builder
+name: rQES TrustProvider Signer Image Builder
 
 on:
   push:
@@ -43,7 +43,7 @@ jobs:
         uses: docker/build-push-action@v6.15.0
         with:
           context: server
-          file: app/Dockerfile
+          file: server/app/Dockerfile
           push: true
           tags: ${{ steps.meta-trust-provider-signer-server-app.outputs.tags }}
           labels: ${{ steps.meta-trust-provider-signer-server-app.outputs.labels }}
@@ -63,10 +63,10 @@ jobs:
         uses: docker/build-push-action@v6.15.0
         with:
           context: server
-          file: sa/Dockerfile
+          file: server/sa/Dockerfile
           push: true
-          tags: ${{ steps.eta-trust-provider-signer-server-sa.outputs.tags }}
-          labels: ${{ steps.eta-trust-provider-signer-server-sa.outputs.labels }}
+          tags: ${{ steps.meta-trust-provider-signer-server-sa.outputs.tags }}
+          labels: ${{ steps.meta-trust-provider-signer-server-sa.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false
@@ -83,10 +83,10 @@ jobs:
         uses: docker/build-push-action@v6.15.0
         with:
           context: client
-          file: Dockerfile
+          file: client/Dockerfile
           push: true
-          tags: ${{ steps.eta-trust-provider-signer-client.outputs.tags }}
-          labels: ${{ steps.eta-trust-provider-signer-client.outputs.labels }}
+          tags: ${{ steps.meta-trust-provider-signer-client.outputs.tags }}
+          labels: ${{ steps.meta-trust-provider-signer-client.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false
