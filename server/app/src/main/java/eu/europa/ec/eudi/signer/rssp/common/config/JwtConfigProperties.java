@@ -21,7 +21,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "assina")
 public class JwtConfigProperties extends TokenCommonConfig {
-	@Value("${auth.jwtTokenSecret}")
+	/*@Value("${auth.jwtTokenSecret}")
 	private String secret;
 
 	@Override
@@ -32,5 +32,5 @@ public class JwtConfigProperties extends TokenCommonConfig {
 	@Override
 	public void setSecret(String secret) {
 		this.secret = secret;
-	}
+	}*/
 }

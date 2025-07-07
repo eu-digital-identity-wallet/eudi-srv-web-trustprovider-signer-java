@@ -80,7 +80,7 @@ public class CertificateGenerator {
 				// And to confirm that the key sig matches
 				if (config.getSignatureAlgorithm() == null ||
 						!config.getSignatureAlgorithm().toLowerCase().endsWith("withrsa")) {
-					String error = "Assina Configuration Error: signatureAlgorithm is incompatible with keyAlgorithm";
+					String error = "TrustProviderSigner Configuration Error: signatureAlgorithm is incompatible with keyAlgorithm";
 					log.error(error);
 					throw new IllegalArgumentException(error);
 				}

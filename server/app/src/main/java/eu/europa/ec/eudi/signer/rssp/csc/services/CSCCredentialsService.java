@@ -218,7 +218,7 @@ public class CSCCredentialsService {
 		pinInfo.setPresence(Boolean.TRUE.toString());
 		// PIN is numeric (use "A" for alpha, "N" for numeric only)
 		pinInfo.setLabel("PIN");
-		pinInfo.setDescription("PIN required for authorizing Assina to sign with this credential");
+		pinInfo.setDescription("PIN required for authorizing TrustProviderSigner to sign with this credential");
 		pinInfo.setFormat("N");
 		return pinInfo;
 	}

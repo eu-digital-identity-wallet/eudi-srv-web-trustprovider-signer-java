@@ -102,10 +102,10 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 	@Nullable
 	protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 		if (ex instanceof ApiException) {
-			log.debug("Handled exception in Assina application", ex);
+			log.debug("Handled exception in TrustProviderSigner application", ex);
 			log.warn("Handled Error: " + ex.getMessage(), (Object[]) ((ApiException) ex).getMessageParams());
 		} else {
-			log.error("Unhandled exception in Assina application", ex);
+			log.error("Unhandled exception in TrustProviderSigner application", ex);
 		}
 		return super.handleExceptionInternal(ex, body, headers, status, request);
 	}

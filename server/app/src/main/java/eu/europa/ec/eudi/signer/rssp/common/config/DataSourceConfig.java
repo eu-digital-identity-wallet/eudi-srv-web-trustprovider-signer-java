@@ -26,9 +26,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class DataSourceConfig {
 
-    @Value("${auth.datasourceUsername}")
+    @Value("${spring.datasource.username}")
     private String datasourceUsername;
-    @Value("${auth.datasourcePassword}")
+    @Value("${spring.datasource.password}")
     private String datasourcePassword;
     @Value("${spring.datasource.url}")
     private String datasourceUrl;

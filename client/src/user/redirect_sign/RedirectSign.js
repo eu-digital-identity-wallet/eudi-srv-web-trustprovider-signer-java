@@ -81,11 +81,9 @@ const RedirectSign = () => {
         .catch((error) => {
           console.error(error);
           const status = error.response?.status;
-          let errorMessage =
-            "Oops! It looks like something didn't go as planned. Please try your request again!";
+          let errorMessage = "Oops! It looks like something didn't go as planned. Please try your request again!";
           if (status === 504) {
-            errorMessage =
-              "It looks like the request timed out. Please give it another try!";
+            errorMessage = "It looks like the request timed out. Please give it another try!";
           } else if (status === 404) {
             errorMessage =
               "Oops! It looks like something didn't go as planned. Please try again!";

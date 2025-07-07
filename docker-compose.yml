@@ -1,0 +1,31 @@
+services:
+  trust_provider_signer_server_app:
+    build:
+      context: server
+      dockerfile: app/Dockerfile
+    container_name: trust_provider_signer_server_app
+    ports:
+      - "8082:8082"
+    env_file:
+      - .env
+    volumes:
+      - /mnt/c/Users/mrodr/RQES_Projects/HSM/config:/opt/app/config/hsm/
+      - /mnt/c/Users/mrodr/RQES_Projects/ejbca_files:/opt/app/config/ejbca/
+  trust_provider_signer_server_sa:
+    build:
+      context: server
+      dockerfile: sa/Dockerfile
+    container_name: trust_provider_signer_server_sa
+    ports:
+      - "8083:8083"
+    env_file:
+      - .env
+  trust_provider_signer_client:
+    build:
+      context: client
+      dockerfile: Dockerfile
+    container_name: trust_provider_signer_client
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env

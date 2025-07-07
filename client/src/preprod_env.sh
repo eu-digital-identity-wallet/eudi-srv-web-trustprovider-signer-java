@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 export REACT_APP_ASSINA_RSSP_BASE_URL=https://trustprovider.signer.eudiw.dev
 export REACT_APP_ASSINA_SA_BASE_URL=https://trustprovider.signer.eudiw.dev
 export REACT_APP_ASSINA_CLIENT_BASE_URL=https://trustprovider.signer.eudiw.dev

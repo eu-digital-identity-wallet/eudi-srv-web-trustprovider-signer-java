@@ -31,14 +31,8 @@ class Download extends Component {
     handleClick(event) {
         log_download_file();
         event.preventDefault();
-
-        console.log(event.target.href);
-
         axios.get(event.target.href,{}).then(
             response => {
-                console.log(response);
-
-                console.log(response.data);
                 let a = document.createElement('a');
                 var binaryData = [];
                 binaryData.push(response.data);
@@ -47,11 +41,6 @@ class Download extends Component {
                 a.click();
             }
         )
-
-
-        // window.location.href = event.target.href;
-        // window.open(event.target.href);
-        //window.location = '/profile';
     }
 
     render() {

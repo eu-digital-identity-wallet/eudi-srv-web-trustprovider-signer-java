@@ -46,15 +46,14 @@ import java.util.stream.Collectors;
  * credentials and sign hashes
  */
 public class RSSPClient implements SignerClient {
-
+    private final RSSPClientConfig config;
     private final WebClient webClient;
-
     private ClientContext context;
     private static final Logger log = LoggerFactory.getLogger(RSSPClient.class);
 
     public RSSPClient(RSSPClientConfig config) {
-        webClient = WebClient.builder().baseUrl(config.setCscBaseUrl())
-                .defaultCookie("cookieKey", "cookieValue")
+        this.config = config;
+        webClient = WebClient.builder().baseUrl(config.getCscBaseUrl()).defaultCookie("cookieKey", "cookieValue")
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).build();
     }
 
@@ -139,8 +138,8 @@ public class RSSPClient implements SignerClient {
     }
 
     public Mono<CredentialInfo[]> requestCredentialList(CSCCredentialsListRequest request) {
-
-        WebClient aux = WebClient.builder().baseUrl("http://localhost:8082/api/v1")
+        String apiBaseUrl = this.config.getApiBaseUrl();
+        WebClient aux = WebClient.builder().baseUrl(apiBaseUrl)
                 .defaultCookie("cookieKey", "cookieValue")
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).build();
 
@@ -150,7 +149,6 @@ public class RSSPClient implements SignerClient {
                 .exchangeToMono(response -> {
                     if (response.statusCode().equals(HttpStatus.OK)) {
                         return response.bodyToMono(CredentialInfo[].class).log();
-                        // return response.bodyToMono(CSCCredentialsListResponse.class);
                     } else {
                         return Mono.error(new RSSPClientException(response));
                     }

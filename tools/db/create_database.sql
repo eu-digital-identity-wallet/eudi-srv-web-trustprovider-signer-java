@@ -14,11 +14,11 @@
  limitations under the License.
 */
 
-CREATE DATABASE assina;
-CREATE USER 'assinaadmin'@ip identified by 'assinaadmin';
-GRANT ALL PRIVILEGES ON *.* TO 'assinaadmin'@ip;
+CREATE DATABASE {database_name};
+CREATE USER {database_username}@ip identified by {database_password};
+GRANT ALL PRIVILEGES ON {database_name}.* TO {database_username}@ip;
 
-USE assina;
+USE {database_name};
 
 CREATE TABLE event (
     eventTypeID INT AUTO_INCREMENT PRIMARY KEY,
