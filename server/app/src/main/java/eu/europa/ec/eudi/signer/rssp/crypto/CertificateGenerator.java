@@ -160,7 +160,7 @@ public class CertificateGenerator {
 	}
 
 	public byte[] generateCertificateRequestInfo(BigInteger modulus, BigInteger exponent, String givenName,
-			String surname, String commonName, String countryName, String organizationName, String subjectAltName)
+			String surname, String commonName, String countryName)
 			throws Exception {
 		init();
 		Security.addProvider(new BouncyCastleProvider());
@@ -175,23 +175,9 @@ public class CertificateGenerator {
 				.addRDN(BCStyle.SURNAME, surname)
 				.addRDN(BCStyle.GIVENNAME, givenName)
 				.addRDN(BCStyle.C, countryName)
-				.addRDN(BCStyle.O, organizationName)
 				.build();
 
-		GeneralNames gn = new GeneralNames(new GeneralName(GeneralName.dNSName, subjectAltName));
-
-		final ExtensionsGenerator extensionsGenerator = new ExtensionsGenerator();
-		extensionsGenerator.addExtension(Extension.subjectAlternativeName, false, gn);
-
-		Attribute extensionRequestAttribute = new Attribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest,
-				new DERSet(extensionsGenerator.generate()));
-
-		ASN1Set attributes = new DERSet(extensionRequestAttribute);
-
-		CertificationRequestInfo cri = new CertificationRequestInfo(
-				subjectDN,
-				pki,
-				attributes);
+		CertificationRequestInfo cri = new CertificationRequestInfo(subjectDN, pki, new DERSet());
 		return cri.getEncoded();
 	}
 

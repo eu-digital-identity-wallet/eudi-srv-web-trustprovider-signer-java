@@ -2,6 +2,8 @@
 /target/
 !.mvn/wrapper/maven-wrapper.jar
 
+issuersCertificates/ot_root.pem
+
 ### STS ###
 .apt_generated
 .classpath

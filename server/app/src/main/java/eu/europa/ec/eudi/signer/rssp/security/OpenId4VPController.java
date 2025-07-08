@@ -92,8 +92,7 @@ public class OpenId4VPController {
     @GetMapping("token")
     public ResponseEntity<?> waitResponse(HttpServletRequest request, @CookieValue("JSESSIONID") String sessionCookie) {
         try {
-            String messageFromVerifier = verifierClient.getVPTokenFromVerifier(sessionCookie,
-                    VerifierClient.Authentication);
+            String messageFromVerifier = verifierClient.getVPTokenFromVerifier(sessionCookie, VerifierClient.Authentication);
             if (messageFromVerifier == null)
                 throw new Exception("Error when trying to obtain the vp_token from Verifier.");
 
@@ -114,7 +113,7 @@ public class OpenId4VPController {
             return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT)
                     .body(SignerError.ConnectionVerifierTimedOut.getFormattedMessage());
         } catch (VerifiablePresentationVerificationException e) {
-            String logMessage = e.getError().getCode() + "(waitResponse in OpenId4VPController.class) "
+            String logMessage = e.getError().getCode() + " (waitResponse in OpenId4VPController.class) "
                     + e.getError().getDescription() + ": " + e.getMessage();
             log.error(logMessage);
             return ResponseEntity.badRequest().body(e.getError().getFormattedMessage());
