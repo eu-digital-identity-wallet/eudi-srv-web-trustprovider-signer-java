@@ -19,6 +19,7 @@ package eu.europa.ec.eudi.signer.rssp.common.config;
 public class TokenCommonConfig {
     private String type;
     private long lifetimeMinutes;
+    private String secret;
 
     public String getType() {
         return this.type;
@@ -34,5 +35,13 @@ public class TokenCommonConfig {
 
     public void setLifetimeMinutes(long lifetimeMinutes) {
         this.lifetimeMinutes = lifetimeMinutes;
+    }
+
+    public String getSecret() {
+        return secret;
+    }
+
+    public void setSecret(String secret) {
+        this.secret = secret;
     }
 }

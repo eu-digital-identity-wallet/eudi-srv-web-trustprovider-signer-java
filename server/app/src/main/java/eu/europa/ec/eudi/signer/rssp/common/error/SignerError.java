@@ -32,10 +32,7 @@ public enum SignerError implements ApiError {
 
         AlgorithmNotSupported("algorithm_not_supported", "The algorithm chosen is not supported", 500),
 
-        FailedCreatingKeyPair("failed_creating_key_pair", "An error occurred while generating the key pair", 500), // 500
-                                                                                                                   // internal
-                                                                                                                   // server
-                                                                                                                   // error
+        FailedCreatingKeyPair("failed_creating_key_pair", "An error occurred while generating the key pair", 500),
 
         FailedCreatingCertificate("failed_creating_certificate",
                         "An error occurred while generating certificate", 500), // 500 internal server error
@@ -103,7 +100,7 @@ public enum SignerError implements ApiError {
 
         ValidityInfoInvalid("validity_info_vptoken_invalid", "The ValidityInfo from the VPToken was not valid.", 438),
 
-        UserNotOver18("user_not_over_18", "User must be over 18.", 439),
+        // UserNotOver18("user_not_over_18", "User must be over 18.", 439),
 
         VPTokenMissingValues("vptoken_missing_requested_values", "The VPToken is missing values requested.", 440),
 

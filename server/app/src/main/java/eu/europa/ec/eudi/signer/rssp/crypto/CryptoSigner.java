@@ -20,7 +20,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -72,11 +71,6 @@ public class CryptoSigner {
      * @param signingKey         private key paired to the public key in the signing
      *                           certificate
      * @return signature for provided data
-     *
-     * @throws CertificateEncodingException
-     * @throws OperatorCreationException
-     * @throws CMSException
-     * @throws IOException
      */
 
     public byte[] signData(byte[] data, final X509Certificate signingCertificate,
@@ -160,11 +154,7 @@ public class CryptoSigner {
         Collection<X509CertificateHolder> certCollection = certs.getMatches(signer.getSID());
         Iterator<X509CertificateHolder> certIt = certCollection.iterator();
         X509CertificateHolder certHolder = certIt.next();
-        boolean verifResult = signer.verify(new JcaSimpleSignerInfoVerifierBuilder().build(certHolder));
-        if (!verifResult) {
-            return false;
-        }
-        return true;
-    }
+		return signer.verify(new JcaSimpleSignerInfoVerifierBuilder().build(certHolder));
+	}
 
 }

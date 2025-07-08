@@ -40,7 +40,7 @@ public class HSMInformation {
         if (activeSessions.contains(sessionRef)) {
             activeSessions.remove(sessionRef);
         } else {
-            log.warn("Session not active: " + sessionRef);
+			log.warn("Session not active: {}", sessionRef);
         }
         idleSessions.push(sessionRef);
     }
@@ -53,7 +53,7 @@ public class HSMInformation {
                 CE.LoginUser(session, pin);
                 sessionRef = new LongRef(session);
                 if (log.isDebugEnabled()) {
-                    log.debug("iddleSessions is empty, adding new session: " + sessionRef.value());
+					log.debug("iddleSessions is empty, adding new session: {}", sessionRef.value());
                 }
             } catch (CKRException rv) {
                 throw new Exception(rv);
@@ -61,7 +61,7 @@ public class HSMInformation {
         } else {
             sessionRef = idleSessions.pop();
             if (log.isDebugEnabled()) {
-                log.debug("Removing session from idle: " + sessionRef.value());
+				log.debug("Removing session from idle: {}", sessionRef.value());
             }
         }
         activeSessions.push(sessionRef);
@@ -86,7 +86,7 @@ public class HSMInformation {
         } else
             idleSessions.remove(sessionRef);
         if (log.isDebugEnabled()) {
-            log.debug("Closed Session: " + sessionRef.value());
+			log.debug("Closed Session: {}", sessionRef.value());
         }
     }
 }

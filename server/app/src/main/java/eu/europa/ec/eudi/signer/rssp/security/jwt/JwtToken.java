@@ -31,6 +31,14 @@ public class JwtToken {
         this.expired = false;
     }
 
+    public JwtToken(String subject, String type, String rawToken) {
+        this.subject = subject;
+        this.type = type;
+        this.valid = true;
+        this.expired = false;
+        this.rawToken = rawToken;
+    }
+
     private JwtToken() {
     }
 

@@ -172,7 +172,7 @@ public class VPValidator {
 
         X509Certificate issuerCertificate = this.ejbcaService.searchForIssuerCertificate(cert.getIssuerX500Principal());
         if (issuerCertificate == null) {
-            log.error("Issuer (" + cert.getIssuerX500Principal().getName() + ") of the VPToken is not trustworthy.");
+            log.error("Issuer ({}) of the VPToken is not trustworthy.", cert.getIssuerX500Principal().getName());
             throw new Exception("Issuer (" + cert.getIssuerX500Principal().getName() + ") of the VPToken is not trustworthy.");
         }
 
@@ -289,7 +289,7 @@ public class VPValidator {
                 List<X509Certificate> certificateChain = certificateList.subList(1, certificateList.size());
                 provider = getSimpleCOSECryptoProvider(certificateFromIssuerAuth, certificateChain);
             } catch (Exception e) {
-                log.error("The Certificate in issuerAuth is not valid. (" + e.getMessage() + ")");
+				log.error("The Certificate in issuerAuth is not valid. ({})", e.getMessage());
                 throw new VerifiablePresentationVerificationException(SignerError.CertificateIssuerAuthInvalid,
                 "The Certificate in issuerAuth is not valid. (" + e.getMessage() + ":" + e.getLocalizedMessage() + ")", VerifiablePresentationVerificationException.Default);
             }
@@ -355,11 +355,11 @@ public class VPValidator {
             return document;
         }
         catch (JSONException e){
-            log.error("The JSON string contains unexpected errors ("+e.getMessage()+").");
+			log.error("The JSON string contains unexpected errors ({}).", e.getMessage());
             throw new VerifiablePresentationVerificationException(SignerError.UnexpectedError, "The JSON string contains unexpected errors ("+e.getMessage()+").", VerifiablePresentationVerificationException.Default);
         }
         catch (Exception e){
-            log.error(SignerError.UnexpectedError.getFormattedMessage()+" : "+e.getMessage());
+			log.error("{} : {}", SignerError.UnexpectedError.getFormattedMessage(), e.getMessage());
             throw new VerifiablePresentationVerificationException(SignerError.UnexpectedError, e.getMessage(), VerifiablePresentationVerificationException.Default);
         }
     }

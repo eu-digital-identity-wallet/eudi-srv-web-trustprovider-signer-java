@@ -57,11 +57,11 @@ public class SigningService {
 	 * @param authorizationHeader the authorization header
 	 * @return the link to redirect to the EUDI Wallet
 	 */
-	public RedirectLinkResponse getOIDRedirectLink(String authorizationHeader) {
+	public RedirectLinkResponse getOIDRedirectLink(String authorizationHeader, String redirect_uri) {
 		ClientContext context = new ClientContext();
 		context.setAuthorizationHeader(authorizationHeader);
 		rsspClient.setContext(context);
-		return pdfSupport.getOIDRedirectLink();
+		return pdfSupport.getOIDRedirectLink(redirect_uri);
 	}
 
 	/**
@@ -77,7 +77,7 @@ public class SigningService {
 	 * @throws AccessCredentialDeniedException
 	 * @throws Exception
 	 */
-	public String signFile(String originalFileName, String credentialAlias, String authorizationHeader)
+	public String signFile(String originalFileName, String credentialAlias, String authorizationHeader, String responseCode)
 			throws InternalErrorException, FailedConnectionVerifier, TimeoutException, AccessCredentialDeniedException,
 			Exception {
 		String signedFileName;
@@ -90,7 +90,7 @@ public class SigningService {
 			context.setAuthorizationHeader(authorizationHeader);
 			context.setCredentialID(credentialAlias);
 			rsspClient.setContext(context);
-			pdfSupport.signDetached(originalFilePath.toFile(), signedFilePath.toFile());
+			pdfSupport.signDetached(originalFilePath.toFile(), signedFilePath.toFile(), responseCode);
 		} catch (IOException | NoSuchAlgorithmException e) {
 			log.error("Internal error in Signing Application", e);
 			throw new InternalErrorException("Internal error in Signing Application", e);

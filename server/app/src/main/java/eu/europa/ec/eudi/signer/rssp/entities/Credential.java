@@ -16,10 +16,10 @@
 
 package eu.europa.ec.eudi.signer.rssp.entities;
 
-import javax.persistence.*;
 
 import eu.europa.ec.eudi.signer.rssp.api.model.DateAudit;
 import eu.europa.ec.eudi.signer.rssp.api.model.StringListConverter;
+import jakarta.persistence.*;
 
 import java.util.Arrays;
 import java.util.List;

@@ -83,7 +83,7 @@ public class CSCInfoController {
 			String lang = infoRequest.getLang();
 			if (StringUtils.hasText(lang)) {
 				if (!lang.equals(CSCConstants.CSC_LANG)) {
-					log.warn("Unsupported lang in request: {}. Trust Provider Signer only supports ", lang,
+					log.warn("Unsupported lang in request: {}. Trust Provider Signer only supports {}", lang,
 							CSCConstants.CSC_LANG);
 				}
 			}

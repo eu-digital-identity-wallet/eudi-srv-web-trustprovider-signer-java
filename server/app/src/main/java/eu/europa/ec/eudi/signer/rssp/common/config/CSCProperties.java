@@ -17,34 +17,89 @@
 package eu.europa.ec.eudi.signer.rssp.common.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.PropertySource;
 
 import eu.europa.ec.eudi.signer.csc.model.AbstractInfo;
 
-@PropertySource("file:application.yml")
 @ConfigurationProperties(prefix = "csc")
 public class CSCProperties {
 
     // properties mapping to the CSC /info request
-    private final Info info = new Info();
+    private Info info;
 
     // properties for controlling the API
-    private final Api api = new Api();
+    private Api api;
 
     // properties for controlling crypto algos, signing etc for CSC
-    private final Crypto crypto = new Crypto();
+    private Crypto crypto;
 
-    // SAD config properties
-    private final Sad sad = new Sad();
+    public Info getInfo() {
+        return info;
+    }
+
+    public void setInfo(Info info) {
+        this.info = info;
+    }
+
+    public Api getApi() {
+        return api;
+    }
+
+    public void setApi(Api api) {
+        this.api = api;
+    }
+
+    public Crypto getCrypto() {
+        return crypto;
+    }
+
+    public void setCrypto(Crypto crypto) {
+        this.crypto = crypto;
+    }
 
     // All CSC info properties are in the YAML file or environment
     public static class Info extends AbstractInfo {
     }
 
-    public static class Crypto extends CryptoConfig {
-    }
+    public static class Crypto {
+        private String keyAlgorithm;
+        private int keySize;
+        private String signatureAlgorithm;
 
-    public static class Sad extends TokenCommonConfig {
+        /**
+         * Key generation algorithm name
+         * Example: "RSA"
+         */
+        public String getKeyAlgorithm() {
+            return keyAlgorithm;
+        }
+
+        public void setKeyAlgorithm(String keyAlgorithm) {
+            this.keyAlgorithm = keyAlgorithm;
+        }
+
+        /**
+         * Certificate Signature algorithm name: must correspond with the key algorithm
+         * Example "SHA256WithRSA" (corresponds with "RSA")
+         */
+        public String getSignatureAlgorithm() {
+            return signatureAlgorithm;
+        }
+
+        public void setSignatureAlgorithm(String signatureAlgorithm) {
+            this.signatureAlgorithm = signatureAlgorithm;
+        }
+
+        /**
+         * Key size in bits
+         * Example: 2048
+         */
+        public int getKeySize() {
+            return keySize;
+        }
+
+        public void setKeySize(int keySize) {
+            this.keySize = keySize;
+        }
     }
 
     public static class Api {
@@ -66,21 +121,5 @@ public class CSCProperties {
         public void setMaxPageSize(int maxPageSize) {
             this.maxPageSize = maxPageSize;
         }
-    }
-
-    public CryptoConfig getCrypto() {
-        return crypto;
-    }
-
-    public Sad getSad() {
-        return sad;
-    }
-
-    public Api getApi() {
-        return api;
-    }
-
-    public Info getInfo() {
-        return info;
     }
 }

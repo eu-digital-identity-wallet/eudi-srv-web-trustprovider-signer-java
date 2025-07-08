@@ -19,11 +19,11 @@ package eu.europa.ec.eudi.signer.csc.payload;
 import eu.europa.ec.eudi.signer.csc.model.CSCConstants;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 
 /**
@@ -82,6 +82,9 @@ public class CSCCredentialsAuthorizeRequest {
     // 8.3.2.
     private String clientData;
 
+    // OPTIONAL
+    private String code;
+
     public String getCredentialID() {
         return credentialID;
     }
@@ -128,5 +131,13 @@ public class CSCCredentialsAuthorizeRequest {
 
     public void setClientData(String clientData) {
         this.clientData = clientData;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 }

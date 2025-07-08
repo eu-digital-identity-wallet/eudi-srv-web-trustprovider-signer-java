@@ -16,15 +16,16 @@
 
 package eu.europa.ec.eudi.signer.rssp.security;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,6 @@ import eu.europa.ec.eudi.signer.rssp.security.openid4vp.VerifierClient;
 @RestController
 @RequestMapping("/auth")
 public class OpenId4VPController {
-
     private static final Logger log = LoggerFactory.getLogger(OpenId4VPController.class);
     private final VerifierClient verifierClient;
     private final OpenId4VPService service;
@@ -58,19 +58,21 @@ public class OpenId4VPController {
 
     @GetMapping("link")
     public ResponseEntity<?> initPresentationTransaction(HttpServletRequest request, HttpServletResponse httpResponse) {
+        String redirect_uri = request.getParameter("redirect_uri");
+        String redirect_uri_decoded = URLDecoder.decode(redirect_uri, StandardCharsets.UTF_8);
+        log.info("redirect_uri from Request: {}", redirect_uri_decoded);
+
         try {
             Cookie cookie = generateCookie();
             String sessionCookie = cookie.getValue();
-            RedirectLinkResponse response = this.verifierClient.initPresentationTransaction(sessionCookie,
-                    VerifierClient.Authentication);
+            RedirectLinkResponse response = this.verifierClient.initPresentationTransaction(sessionCookie, VerifierClient.Authentication, redirect_uri_decoded);
             ResponseEntity<RedirectLinkResponse> responseEntity = ResponseEntity.ok(response);
             httpResponse.addCookie(cookie);
             return responseEntity;
         } catch (ApiException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            String logMessage = SignerError.UnexpectedError.getCode()
-                    + " (initPresentationTransaction in OpenId4VPController.class) " + e.getMessage();
+            String logMessage = SignerError.UnexpectedError.getCode() + " (initPresentationTransaction in OpenId4VPController.class) " + e.getMessage();
             log.error(logMessage);
             return ResponseEntity.badRequest().body(SignerError.UnexpectedError.getFormattedMessage());
         }
@@ -89,10 +91,57 @@ public class OpenId4VPController {
         return cookie;
     }
 
+    @GetMapping("token/same-device")
+    public ResponseEntity<?> waitSameDeviceResponse(HttpServletRequest request) {
+        String session_id = request.getParameter("session_id");
+        log.info("response_code from Request: {}", session_id);
+
+        String code = request.getParameter("response_code");
+        log.info("response_code from Request: {}", code);
+
+        try {
+            String messageFromVerifier = verifierClient.getVPTokenFromVerifier(session_id, VerifierClient.Authentication, code);
+            if (messageFromVerifier == null)
+                throw new Exception("Error when trying to obtain the vp_token from Verifier.");
+
+            AuthResponse JWTToken = this.service.loadUserFromVerifierResponseAndGetJWTToken(messageFromVerifier);
+            return ResponseEntity.ok(JWTToken);
+        } catch (FailedConnectionVerifier e) {
+            String logMessage = SignerError.FailedConnectionToVerifier.getCode()
+                  + "(waitResponse in OpenId4VPController.class): "
+                  + SignerError.FailedConnectionToVerifier.getDescription();
+            log.error(logMessage);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                  .body(SignerError.FailedConnectionToVerifier.getFormattedMessage());
+        } catch (TimeoutException e) {
+            String logMessage = SignerError.ConnectionVerifierTimedOut.getCode()
+                  + "(waitResponse in OpenId4VPController.class): "
+                  + SignerError.ConnectionVerifierTimedOut.getDescription();
+            log.error(logMessage);
+            return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT)
+                  .body(SignerError.ConnectionVerifierTimedOut.getFormattedMessage());
+        } catch (VerifiablePresentationVerificationException e) {
+            String logMessage = e.getError().getCode() + " (waitResponse in OpenId4VPController.class) "
+                  + e.getError().getDescription() + ": " + e.getMessage();
+            log.error(logMessage);
+            return ResponseEntity.badRequest().body(e.getError().getFormattedMessage());
+        } catch (VPTokenInvalid e) {
+            return ResponseEntity.badRequest().body(e.getError().getFormattedMessage());
+        } catch (ApiException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            String logMessage = SignerError.UnexpectedError.getCode()
+                  + " (waitResponse in OpenId4VPController.class) " + e.getMessage();
+            log.error(logMessage);
+            return ResponseEntity.badRequest().body(SignerError.UnexpectedError.getFormattedMessage());
+        }
+    }
+
     @GetMapping("token")
     public ResponseEntity<?> waitResponse(HttpServletRequest request, @CookieValue("JSESSIONID") String sessionCookie) {
         try {
-            String messageFromVerifier = verifierClient.getVPTokenFromVerifier(sessionCookie, VerifierClient.Authentication);
+            String messageFromVerifier = verifierClient.getVPTokenFromVerifierRecursive(sessionCookie, VerifierClient.Authentication);
+
             if (messageFromVerifier == null)
                 throw new Exception("Error when trying to obtain the vp_token from Verifier.");
 

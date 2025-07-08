@@ -32,7 +32,7 @@ class Logs extends Component {
 
     componentDidMount() {
         const headers = {
-            Authorization: "Bearer " + sessionStorage.getItem(ACCESS_TOKEN),
+            Authorization: "Bearer " + localStorage.getItem(ACCESS_TOKEN),
         };
 
         axios

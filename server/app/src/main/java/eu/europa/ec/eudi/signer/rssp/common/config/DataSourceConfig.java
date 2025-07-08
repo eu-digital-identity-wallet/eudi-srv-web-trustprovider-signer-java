@@ -22,11 +22,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 
 @Configuration
-@PropertySource("classpath:application-auth.yml")
-@PropertySource("classpath:application.yml")
 public class DataSourceConfig {
 
     @Value("${auth.datasourceUsername}")
@@ -46,5 +43,37 @@ public class DataSourceConfig {
         dataSourceBuilder.username(datasourceUsername);
         dataSourceBuilder.password(datasourcePassword);
         return dataSourceBuilder.build();
+    }
+
+    public String getDatasourceUsername() {
+        return datasourceUsername;
+    }
+
+    public void setDatasourceUsername(String datasourceUsername) {
+        this.datasourceUsername = datasourceUsername;
+    }
+
+    public String getDatasourcePassword() {
+        return datasourcePassword;
+    }
+
+    public void setDatasourcePassword(String datasourcePassword) {
+        this.datasourcePassword = datasourcePassword;
+    }
+
+    public String getDatasourceUrl() {
+        return datasourceUrl;
+    }
+
+    public void setDatasourceUrl(String datasourceUrl) {
+        this.datasourceUrl = datasourceUrl;
+    }
+
+    public String getDatasourceDriverClassName() {
+        return datasourceDriverClassName;
+    }
+
+    public void setDatasourceDriverClassName(String datasourceDriverClassName) {
+        this.datasourceDriverClassName = datasourceDriverClassName;
     }
 }

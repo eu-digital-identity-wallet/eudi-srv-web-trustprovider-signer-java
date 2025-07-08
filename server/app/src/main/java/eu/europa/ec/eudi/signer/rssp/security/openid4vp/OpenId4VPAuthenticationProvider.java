@@ -23,7 +23,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-@Component
 public class OpenId4VPAuthenticationProvider implements AuthenticationProvider {
 
     private final OpenId4VPUserDetailsService userDetailsService;

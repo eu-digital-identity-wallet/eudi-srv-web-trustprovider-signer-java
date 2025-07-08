@@ -20,7 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -31,8 +33,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import eu.europa.ec.eudi.signer.common.ApiError;
 import eu.europa.ec.eudi.signer.common.ApiErrorResponse;
 import eu.europa.ec.eudi.signer.csc.error.CSCInvalidRequest;
-
-import java.lang.reflect.Field;
 
 /**
  * Captures exceptions going out of the REST layer and converts ApiErrors into
@@ -73,10 +73,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 	 * (according to the CSC spec)
 	 */
 	@Override
-	protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
-			HttpHeaders headers,
-			HttpStatus status,
-			WebRequest request) {
+	protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 		ApiError apiError;
 		if (ex.hasFieldErrors()) {
 			FieldError fieldError = ex.getFieldError();
@@ -102,8 +99,8 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 
 	@Override
-	protected ResponseEntity<Object> handleExceptionInternal(
-			Exception ex, Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
+	@Nullable
+	protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 		if (ex instanceof ApiException) {
 			log.debug("Handled exception in Assina application", ex);
 			log.warn("Handled Error: " + ex.getMessage(), (Object[]) ((ApiException) ex).getMessageParams());

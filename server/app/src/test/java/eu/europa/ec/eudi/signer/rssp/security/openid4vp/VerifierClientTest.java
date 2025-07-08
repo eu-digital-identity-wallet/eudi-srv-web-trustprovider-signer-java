@@ -52,7 +52,7 @@ public class VerifierClientTest {
         String nonce = Base64.getUrlEncoder().encodeToString(result);
         String user = "test";
         String presentation_id = "presentation_id";
-        verifierVariables.addUsersVerifierCreatedVariable(user, Authorization, nonce, presentation_id);
+        verifierVariables.addUsersVerifierCreatedVariable(user, "same", Authorization, nonce, presentation_id);
 
         // Assert
         Map<String, VerifierCreatedVariable> variables = verifierVariables.getAllVariables();
@@ -60,7 +60,7 @@ public class VerifierClientTest {
         Assert.assertEquals(len1, len + 1);
 
         boolean found = variables.containsKey(user);
-        Assert.assertEquals(true, found);
+		Assert.assertTrue(found);
 
         VerifierCreatedVariable vcv = variables.get(user);
         Assert.assertEquals(nonce, vcv.getNonce());
@@ -81,17 +81,15 @@ public class VerifierClientTest {
         String nonce = Base64.getUrlEncoder().encodeToString(result);
         String user = "test";
         String presentation_id = "presentation_id";
-        verifierVariables.addUsersVerifierCreatedVariable(user, Authorization, nonce, presentation_id);
+        verifierVariables.addUsersVerifierCreatedVariable(user, "same", Authorization, nonce, presentation_id);
 
         // Assert
         Map<String, VerifierCreatedVariable> variables = verifierVariables.getAllVariables();
         boolean found = variables.containsKey(user);
-        Assert.assertEquals(true, found);
+		Assert.assertTrue(found);
 
         boolean found2 = verifierVariables.containsUser(user);
-        Assert.assertEquals(true, found2);
-
-        Assert.assertEquals(found, found2);
+		Assert.assertTrue(found2);
     }
 
     @Test
@@ -108,7 +106,7 @@ public class VerifierClientTest {
         String nonce = Base64.getUrlEncoder().encodeToString(result);
         String user = "test";
         String presentation_id = "presentation_id";
-        verifierVariables.addUsersVerifierCreatedVariable(user, Authorization, nonce, presentation_id);
+        verifierVariables.addUsersVerifierCreatedVariable(user, "same", Authorization, nonce, presentation_id);
 
         // Assert
         Map<String, VerifierCreatedVariable> variables = verifierVariables.getAllVariables();
@@ -116,12 +114,12 @@ public class VerifierClientTest {
         Assert.assertEquals(len1, len + 1);
 
         boolean found = variables.containsKey(user);
-        Assert.assertEquals(true, found);
+		Assert.assertTrue(found);
 
         VerifierCreatedVariable vcv = variables.get(user);
         Assert.assertNotNull(vcv);
 
-        VerifierCreatedVariable vcvGet = verifierVariables.getUsersVerifierCreatedVariable(user, Authorization);
+        VerifierCreatedVariable vcvGet = verifierVariables.getUsersVerifierCreatedVariable(user, "same", Authorization);
         Assert.assertNotNull(vcvGet);
 
         Assert.assertEquals(nonce, vcvGet.getNonce());
@@ -132,7 +130,7 @@ public class VerifierClientTest {
 
         Map<String, VerifierCreatedVariable> variablesAfterRemove = verifierVariables.getAllVariables();
         boolean notFound = variablesAfterRemove.containsKey(user);
-        Assert.assertEquals(false, notFound);
+		Assert.assertFalse(notFound);
     }
 
     @Test
@@ -149,7 +147,7 @@ public class VerifierClientTest {
         String user = "test";
         String presentation_id = "presentation_id";
 
-        verifierVariables.addUsersVerifierCreatedVariable(user, Authorization, nonce, presentation_id);
+        verifierVariables.addUsersVerifierCreatedVariable(user, "same", Authorization, nonce, presentation_id);
 
         // assert len1 == len + 1;
         int len1 = verifierVariables.getAllVariables().size();
@@ -157,13 +155,13 @@ public class VerifierClientTest {
 
         // assert containsUser() == true;
         boolean found = verifierVariables.containsUser(user);
-        Assert.assertEquals(true, found);
+		Assert.assertTrue(found);
 
-        VerifierCreatedVariable vcv = verifierVariables.getUsersVerifierCreatedVariable(user, Authorization);
+        VerifierCreatedVariable vcv = verifierVariables.getUsersVerifierCreatedVariable(user, "same", Authorization);
         Assert.assertEquals(nonce, vcv.getNonce());
 
         found = verifierVariables.containsUser(user);
-        Assert.assertEquals(false, found);
+		Assert.assertFalse(found);
     }
 
     @Test
@@ -189,12 +187,12 @@ public class VerifierClientTest {
                     String user = "test" + Integer.toString(index);
                     String presentation_id = "presentation_id" + index;
 
-                    verifierVariables.addUsersVerifierCreatedVariable(user, Authorization, nonce, presentation_id);
+                    verifierVariables.addUsersVerifierCreatedVariable(user, "same", Authorization, nonce, presentation_id);
 
                     // Assert
                     Map<String, VerifierCreatedVariable> variables = verifierVariables.getAllVariables();
                     boolean found = variables.containsKey(user);
-                    Assert.assertEquals(true, found);
+					Assert.assertTrue(found);
 
                     VerifierCreatedVariable vcv = variables.get(user);
                     Assert.assertEquals(nonce, vcv.getNonce());
@@ -215,7 +213,7 @@ public class VerifierClientTest {
 
         Set<String> keys = variables.keySet();
         for (int i = 0; i < numberOfThreads; i++) {
-            String user = "test" + Integer.toString(i);
+            String user = "test" + i;
             keys.contains(user);
         }
 
@@ -245,15 +243,15 @@ public class VerifierClientTest {
                     String user = "test" + Integer.toString(index);
                     String presentation_id = "presentation_id" + index;
 
-                    verifierVariables.addUsersVerifierCreatedVariable(user, Authorization, nonce, presentation_id);
+                    verifierVariables.addUsersVerifierCreatedVariable(user, "same", Authorization, nonce, presentation_id);
 
                     // Assert
                     Map<String, VerifierCreatedVariable> variables = verifierVariables.getAllVariables();
                     boolean found = variables.containsKey(user);
-                    Assert.assertEquals(true, found);
+					Assert.assertTrue(found);
 
                     boolean found2 = verifierVariables.containsUser(user);
-                    Assert.assertEquals(true, found2);
+					Assert.assertTrue(found2);
 
                     Assert.assertEquals(found, found2);
                 } catch (Exception e) {
@@ -294,12 +292,12 @@ public class VerifierClientTest {
                     String user = "test" + Integer.toString(index);
                     String presentation_id = "presentation_id" + index;
 
-                    verifierVariables.addUsersVerifierCreatedVariable(user, Authorization, nonce, presentation_id);
+                    verifierVariables.addUsersVerifierCreatedVariable(user, "same", Authorization, nonce, presentation_id);
 
                     // Assert
                     Map<String, VerifierCreatedVariable> variables = verifierVariables.getAllVariables();
                     boolean found = variables.containsKey(user);
-                    Assert.assertEquals(true, found);
+					Assert.assertTrue(found);
 
                     VerifierCreatedVariable vcv = variables.get(user);
                     Assert.assertNotNull(vcv);
@@ -307,14 +305,14 @@ public class VerifierClientTest {
 
                     // wait(1000);
 
-                    VerifierCreatedVariable vcvGet = verifierVariables.getUsersVerifierCreatedVariable(user,
+                    VerifierCreatedVariable vcvGet = verifierVariables.getUsersVerifierCreatedVariable(user, "same",
                             Authorization);
                     Assert.assertNotNull(vcvGet);
                     Assert.assertEquals(vcv, vcvGet);
 
                     Map<String, VerifierCreatedVariable> variablesAfterRemove = verifierVariables.getAllVariables();
                     boolean notFound = variablesAfterRemove.containsKey(user);
-                    Assert.assertEquals(false, notFound);
+					Assert.assertFalse(notFound);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -349,18 +347,17 @@ public class VerifierClientTest {
                     String user = "test" + Integer.toString(index);
                     String presentation_id = "presentation_id" + index;
 
-                    verifierVariables.addUsersVerifierCreatedVariable(user, Authorization, nonce, presentation_id);
+                    verifierVariables.addUsersVerifierCreatedVariable(user, "same", Authorization, nonce, presentation_id);
 
                     // assert containsUser() == true;
                     boolean found = verifierVariables.containsUser(user);
-                    Assert.assertEquals(true, found);
+					Assert.assertTrue(found);
 
-                    VerifierCreatedVariable vcv = verifierVariables.getUsersVerifierCreatedVariable(user,
-                            Authorization);
+                    VerifierCreatedVariable vcv = verifierVariables.getUsersVerifierCreatedVariable(user, "same", Authorization);
                     Assert.assertEquals(nonce, vcv.getNonce());
 
                     found = verifierVariables.containsUser(user);
-                    Assert.assertEquals(false, found);
+					Assert.assertFalse(found);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

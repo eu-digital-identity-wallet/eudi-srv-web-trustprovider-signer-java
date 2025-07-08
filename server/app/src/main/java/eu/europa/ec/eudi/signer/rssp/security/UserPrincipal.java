@@ -19,16 +19,13 @@ package eu.europa.ec.eudi.signer.rssp.security;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.core.user.OAuth2User;
-
 import eu.europa.ec.eudi.signer.rssp.entities.User;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class UserPrincipal implements OAuth2User, UserDetails {
+public class UserPrincipal implements UserDetails {
     private final String id;
     private final String givenName;
     private final String surname;
@@ -77,7 +74,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         return this.hash;
     }
 
-    @Override
     public String getName() {
         return this.fullName;
     }
@@ -115,7 +111,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         return authorities;
     }
 
-    @Override
     public Map<String, Object> getAttributes() {
         return attributes;
     }

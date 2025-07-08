@@ -29,7 +29,6 @@ import org.springframework.stereotype.Component;
 import eu.europa.ec.eudi.signer.rssp.api.model.LoggerUtil;
 import eu.europa.ec.eudi.signer.rssp.common.config.AuthProperties;
 import eu.europa.ec.eudi.signer.rssp.common.config.CSCProperties;
-import eu.europa.ec.eudi.signer.rssp.common.config.CryptoConfig;
 import eu.europa.ec.eudi.signer.rssp.common.error.ApiException;
 import eu.europa.ec.eudi.signer.rssp.common.error.SignerError;
 import eu.europa.ec.eudi.signer.rssp.entities.Credential;
@@ -69,23 +68,23 @@ public class CryptoService {
 
     private final CertificateGenerator generator;
     private final CryptoSigner cryptoSigner;
-    private final CryptoConfig config;
+    private final CSCProperties.Crypto config;
     private final PemConverter pemConverter;
     private final HSMService hsmService;
     private final EJBCAService ejbcaService;
-    private final AuthProperties authProperties;
+    private final LoggerUtil loggerUtil;
     private static final int IVLENGTH = 12;
 
     public CryptoService(@Autowired ConfigRepository configRep, @Autowired CSCProperties cscProperties,
             @Autowired HSMService hsmService, @Autowired EJBCAService ejbcaService,
-            @Autowired AuthProperties authProperties) throws Exception {
+            @Autowired AuthProperties authProperties, @Autowired LoggerUtil loggerUtil) throws Exception {
         this.config = cscProperties.getCrypto();
         this.cryptoSigner = new CryptoSigner();
         this.generator = new CertificateGenerator(config);
-        this.pemConverter = new PemConverter(config);
+        this.pemConverter = new PemConverter();
         this.hsmService = hsmService;
         this.ejbcaService = ejbcaService;
-        this.authProperties = authProperties;
+        this.loggerUtil = loggerUtil;
 
         char[] passphrase = authProperties.getDbEncryptionPassphrase().toCharArray();
         byte[] saltBytes = Base64.getDecoder().decode(authProperties.getDbEncryptionSalt());
@@ -138,8 +137,7 @@ public class CryptoService {
         }
     }
 
-    public static void savePublicKeyHSM(String owner, Credential credential, BigInteger modulus,
-            BigInteger public_exponent) throws Exception {
+    public static void savePublicKeyHSM(Credential credential, BigInteger modulus, BigInteger public_exponent) throws Exception {
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         RSAPublicKeySpec pKeySpec = new RSAPublicKeySpec(modulus, public_exponent);
         RSAPublicKey pk = (RSAPublicKey) keyFactory.generatePublic(pKeySpec);
@@ -164,7 +162,6 @@ public class CryptoService {
      * @param countryCode the contryCode of the user (from the VP Token), that will
      *                    determine which CA will sign the certificate
      * @return the credential created
-     * @throws Exception
      */
     public Credential createCredential(String owner, String givenName, String surname, String subjectDN,
             String alias, String countryCode) throws Exception {
@@ -179,7 +176,7 @@ public class CryptoService {
         BigInteger PublicExponentBI = new BigInteger(1, public_exponent);
 
         List<X509Certificate> EJBCACertificates = generateCertificates(owner, ModulusBI, PublicExponentBI,
-                givenName, surname, subjectDN, alias, countryCode, privKeyValues);
+                givenName, surname, subjectDN, countryCode, privKeyValues);
 
         X509Certificate ejbcaCert = EJBCACertificates.get(0);
         List<Certificate> certs = new ArrayList<>();
@@ -193,7 +190,7 @@ public class CryptoService {
             }
         }
 
-        savePublicKeyHSM(owner, credential, ModulusBI, PublicExponentBI);
+        savePublicKeyHSM(credential, ModulusBI, PublicExponentBI);
         credential.setKeyAlgorithmOIDs(generator.getKeyAlgorithmOIDs());
         credential.setKeyBitLength(generator.getKeyBitLength());
         credential.setECDSACurveOID(generator.getECSDACurveOID());
@@ -226,8 +223,7 @@ public class CryptoService {
                     + "(generateKeyPair in CryptoService.class) The algorithm " + this.config.getKeyAlgorithm()
                     + " for key pair creation is not supported by the current implementation.";
             logger.error(logMessage);
-            LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
-                    this.authProperties.getDatasourcePassword(), 0, owner, 3, "");
+            loggerUtil.logsUser(0, owner, 3, "");
             throw new ApiException(SignerError.AlgorithmNotSupported, "The algorithm " + this.config.getKeyAlgorithm()
                     + " for key pair creation is not supported by the current implementation.");
         }
@@ -239,8 +235,7 @@ public class CryptoService {
                     + "(generateKeyPair in CryptoService.class) "
                     + SignerError.FailedCreatingKeyPair.getDescription() + ": " + e.getMessage();
             logger.error(logMessage);
-            LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
-                    this.authProperties.getDatasourcePassword(), 0, owner, 3, "");
+            loggerUtil.logsUser(0, owner, 3, "");
             throw new ApiException(SignerError.FailedCreatingKeyPair, SignerError.FailedCreatingKeyPair.getDescription());
         }
     }
@@ -248,7 +243,7 @@ public class CryptoService {
     /**
      * Function that allows to create a certificate signed by a CA
      * Exception: if the EJBCA fails to create a certificate
-     * 
+     *
      * @param owner            the user that requested the issuance of the
      *                         certificate
      * @param ModulusBI        the modulus of the public key
@@ -257,17 +252,14 @@ public class CryptoService {
      *                         create
      * @param surname          the surname of the owner of the certificate to create
      * @param subjectCN        the subject of the certificate
-     * @param alias            the alias of the credential for which it is going to
-     *                         be created the certificate
      * @param countryCode      the country code of the owner
      * @param privKeyValues    the private key wrapped
      * @return the list of the Certificates (includes the certificate created and
-     *         the certificate chain)
+     * the certificate chain)
      */
     public List<X509Certificate> generateCertificates(String owner, BigInteger ModulusBI, BigInteger PublicExponentBI,
-            String givenName, String surname, String subjectCN, String alias, String countryCode,
-            byte[] privKeyValues) throws ApiException {
-
+                                                      String givenName, String surname, String subjectCN, String countryCode,
+                                                      byte[] privKeyValues) throws ApiException {
         try {
             // Create a certificate Signing Request for the keys
             byte[] csrInfo = generator.generateCertificateRequestInfo(ModulusBI, PublicExponentBI, givenName, surname, subjectCN, countryCode);
@@ -289,8 +281,7 @@ public class CryptoService {
                     + "(generateCertificates in CryptoService.class) "
                     + SignerError.FailedCreatingCertificate.getDescription() + ": " + e.getMessage();
             logger.error(logMessage);
-            LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
-                    this.authProperties.getDatasourcePassword(), 0, owner, 1, "");
+            loggerUtil.logsUser(0, owner, 1, "");
             throw new ApiException(SignerError.FailedCreatingCertificate,
                     SignerError.FailedCreatingKeyPair.getDescription());
         }
@@ -387,9 +378,6 @@ public class CryptoService {
     /**
      * Unmarshall the PEM string (Base64) form of the certificate into an
      * X509Certificate object
-     * 
-     * @param pemCertificate
-     * @return proper X509Certificate object
      */
     public X509Certificate pemToX509Certificate(String pemCertificate) {
         try {

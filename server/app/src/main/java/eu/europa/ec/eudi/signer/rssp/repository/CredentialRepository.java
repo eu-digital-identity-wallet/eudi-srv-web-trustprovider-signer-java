@@ -19,11 +19,10 @@ package eu.europa.ec.eudi.signer.rssp.repository;
 import java.util.List;
 import java.util.Optional;
 
-import javax.transaction.Transactional;
-
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import eu.europa.ec.eudi.signer.rssp.entities.Credential;
 
@@ -41,7 +40,7 @@ import eu.europa.ec.eudi.signer.rssp.entities.Credential;
  * the
  * mere declaration of a dependency (on H2 in this case) in the root pom.xml.
  */
-public interface CredentialRepository extends PagingAndSortingRepository<Credential, String> {
+public interface CredentialRepository extends JpaRepository<Credential, String> {
     /**
      * Find a certificate by Owner.
      * <p>
@@ -66,4 +65,5 @@ public interface CredentialRepository extends PagingAndSortingRepository<Credent
     void deleteByOwnerAndAlias(String owner, String alias);
 
     long countByOwner(String owner);
+
 }

@@ -30,7 +30,7 @@ spring:
             naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
         properties:
             hibernate:
-                dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+                dialect: org.hibernate.dialect.MySQLDialect
 
     profiles:
         include:
@@ -38,25 +38,26 @@ spring:
             - "auth"
 
 assina:
-    auth:
-        type: userAuthentication
-        lifetimeMinutes: 600
+    type: userAuthentication
+    lifetimeMinutes: 600
 
 verifier:
-    url: https://dev.verifier-backend.eudiw.dev/ui/presentations
-    address: dev.verifier-backend.eudiw.dev
+    url: https://verifier-backend.eudiw.dev/ui/presentations
+    address: verifier-backend.eudiw.dev
+    client_id: x509_san_dns:verifier-backend.eudiw.dev
 
 trusted-issuers:
     folder: issuersCertificates
+
+sad:
+    type: SAD
+    lifetimeMinutes: 5
 
 csc:
     crypto:
         keyAlgorithm: RSA
         keySize: 2048
         signatureAlgorithm: SHA256WithRSA
-    sad:
-        type: SAD
-        lifetimeMinutes: 5
     api:
         pageSize: 20 # if a client does not specify maxResults this is the default page size
         maxPageSize: 100 # even if a client does specify maxResults we limit it to this to avoid DOS
@@ -72,6 +73,6 @@ csc:
             - signatures/signHash
 logging:
     level:
-        org:
-            springframework:
-                security: INFO
+        root: DEBUG
+        org.springframework.web: DEBUG
+        org.springframework.security: DEBUG

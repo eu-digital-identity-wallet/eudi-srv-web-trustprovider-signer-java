@@ -20,8 +20,4 @@ public class AccessCredentialDeniedException extends Exception {
     public AccessCredentialDeniedException() {
         super("The access to the Credentials was not authorized.");
     }
-
-    public AccessCredentialDeniedException(String message) {
-        super(message);
-    }
 }

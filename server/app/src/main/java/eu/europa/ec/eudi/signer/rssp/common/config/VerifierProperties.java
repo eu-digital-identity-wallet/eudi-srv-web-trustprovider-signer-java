@@ -24,6 +24,7 @@ import org.springframework.context.annotation.PropertySource;
 public class VerifierProperties {
     private String url;
     private String address;
+    private String clientId;
 
     public String getUrl() {
         return this.url;
@@ -39,5 +40,13 @@ public class VerifierProperties {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
     }
 }

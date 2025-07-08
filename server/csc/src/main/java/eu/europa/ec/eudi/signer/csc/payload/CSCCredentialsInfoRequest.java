@@ -16,7 +16,7 @@
 
 package eu.europa.ec.eudi.signer.csc.payload;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 /**
  * Body for request of credentials/info - information about a specific

@@ -34,7 +34,7 @@ class OAuth2RedirectHandler extends Component {
         const error = this.getUrlParameter("error");
 
         if (token) {
-            sessionStorage.setItem(ACCESS_TOKEN, token);
+            localStorage.setItem(ACCESS_TOKEN, token);
             return (
                 <Navigate
                     to={{

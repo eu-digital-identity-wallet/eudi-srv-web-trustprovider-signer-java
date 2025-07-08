@@ -21,21 +21,29 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import eu.europa.ec.eudi.signer.rssp.common.config.DataSourceConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class LoggerUtil {
-    private static final String URL = "jdbc:mysql://localhost:3306/assina?useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false";
-    public static String desc = "";
+    private final DataSourceConfig dataSourceConfig;
 
+    public static String desc = "";
     private static final Logger logger = LogManager.getLogger(LoggerUtil.class);
 
-    public static void logsUser(String dbUsername, String dbPassword, int success, String usersID, int eventTypeID,
-                                String info) {
+    public LoggerUtil(@Autowired DataSourceConfig dataSourceConfig){
+        this.dataSourceConfig = dataSourceConfig;
+    }
 
-        try (Connection connection = DriverManager.getConnection(URL, dbUsername, dbPassword)) {
+    public void logsUser(int success, String usersID, int eventTypeID, String info) {
+        String url = this.dataSourceConfig.getDatasourceUrl();
+        String dbUsername = this.dataSourceConfig.getDatasourceUsername();
+        String dbPassword = this.dataSourceConfig.getDatasourcePassword();
+
+        try (Connection connection = DriverManager.getConnection(url, dbUsername, dbPassword)) {
             String sql = "INSERT INTO logs_user (success, usersID, eventTypeID, info) VALUES (?, ?, ?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
                 statement.setInt(1, success);

@@ -23,8 +23,7 @@ import eu.europa.ec.eudi.signer.rssp.csc.controller.CSCCredentialControllerTest;
 import eu.europa.ec.eudi.signer.rssp.csc.controller.CSCInfoControllerTest;
 
 @RunWith(Suite.class)
-@Suite.SuiteClasses({
-                CSCCredentialControllerTest.class, CSCInfoControllerTest.class
+@Suite.SuiteClasses({CSCCredentialControllerTest.class, CSCInfoControllerTest.class
 })
 public class CSCSuite {
 }

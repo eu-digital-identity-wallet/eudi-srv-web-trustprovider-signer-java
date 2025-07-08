@@ -92,16 +92,16 @@ public class PdfSupport {
      * 
      * @return the link to redirect to the EUDI Wallet
      */
-    public RedirectLinkResponse getOIDRedirectLink() {
-        return this.signer.getOIDRedirectLink();
+    public RedirectLinkResponse getOIDRedirectLink(String redirect_uri) {
+        return this.signer.getOIDRedirectLink(redirect_uri);
     }
 
-    public byte[] signPdfContent(String pdfName, InputStream content, ClientContext context)
+    public byte[] signPdfContent(String pdfName, InputStream content, String responseCode, ClientContext context)
             throws IOException, NoSuchAlgorithmException, FailedConnectionVerifier, TimeoutException,
             AccessCredentialDeniedException, Exception {
         byte[] pdfContentBytes = IOUtils.toByteArray(content);
         try {
-            return signer.signHash(pdfName, pdfContentBytes, context);
+            return signer.signHash(pdfName, pdfContentBytes, responseCode, context);
         } catch (Exception e) {
             System.out.println(e.getClass().toString());
             throw e;
@@ -115,7 +115,7 @@ public class PdfSupport {
      * @param outFile output PDF file
      * @throws IOException if the input file could not be read
      */
-    public void signDetached(File inFile, File outFile) throws IOException, NoSuchAlgorithmException,
+    public void signDetached(File inFile, File outFile, String responseCode) throws IOException, NoSuchAlgorithmException,
             FailedConnectionVerifier, TimeoutException, AccessCredentialDeniedException, Exception {
         if (inFile == null || !inFile.exists()) {
             throw new FileNotFoundException("Document for signing does not exist");
@@ -125,14 +125,14 @@ public class PdfSupport {
         PDDocument doc = null;
         try {
             doc = PDDocument.load(inFile);
-            signDetached(inFile.getName(), doc, fos);
+            signDetached(inFile.getName(), doc, fos, responseCode);
         } finally {
             IOUtils.closeQuietly(fos);
             IOUtils.closeQuietly(doc);
         }
     }
 
-    public void signDetached(String pdfName, PDDocument document, OutputStream output)
+    public void signDetached(String pdfName, PDDocument document, OutputStream output, String responseCode)
             throws IOException, NoSuchAlgorithmException,
             FailedConnectionVerifier, TimeoutException, AccessCredentialDeniedException, Exception {
         int accessPermissions = getMDPPermission(document);
@@ -167,7 +167,7 @@ public class PdfSupport {
             document.addSignature(signature, options);
             ExternalSigningSupport externalSigning = document.saveIncrementalForExternalSigning(output);
             final InputStream content = externalSigning.getContent();
-            byte[] cmsSignature = signPdfContent(pdfName, content, context);
+            byte[] cmsSignature = signPdfContent(pdfName, content, responseCode, context);
             externalSigning.setSignature(cmsSignature);
         }
     }
