@@ -141,6 +141,7 @@ public class OpenId4VPController {
     public ResponseEntity<?> waitResponse(HttpServletRequest request, @CookieValue("JSESSIONID") String sessionCookie) {
         try {
             String messageFromVerifier = verifierClient.getVPTokenFromVerifierRecursive(sessionCookie, VerifierClient.Authentication);
+
             if (messageFromVerifier == null)
                 throw new Exception("Error when trying to obtain the vp_token from Verifier.");
 

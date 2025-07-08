@@ -172,7 +172,7 @@ public class VPValidator {
 
         X509Certificate issuerCertificate = this.ejbcaService.searchForIssuerCertificate(cert.getIssuerX500Principal());
         if (issuerCertificate == null) {
-			log.error("Issuer ({}) of the VPToken is not trustworthy.", cert.getIssuerX500Principal().getName());
+            log.error("Issuer ({}) of the VPToken is not trustworthy.", cert.getIssuerX500Principal().getName());
             throw new Exception("Issuer (" + cert.getIssuerX500Principal().getName() + ") of the VPToken is not trustworthy.");
         }
 
