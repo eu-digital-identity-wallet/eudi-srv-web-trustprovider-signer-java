@@ -1,22 +1,23 @@
+
 # TrustProvider Signer
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 - [TrustProvider Signer](#trustprovider-signer)
-  - [Overview](#overview)
-    - [Features](#features)
-  - [:heavy_exclamation_mark: Disclaimer](#heavy_exclamation_mark-disclaimer)
-  - [Prerequisites](#prerequisites)
-    - [Database Setup](#database-setup)
-    - [.env File Setup](#env-file-setup)
-  - [Local Deployment](#local-deployment)
-  - [Docker Deployment](#docker-deployment)
-  - [Testing](#testing)
-  - [Demo videos](#demo-videos)
-  - [How to contribute](#how-to-contribute)
-  - [License](#license)
-    - [Third-party component licenses](#third-party-component-licenses)
-    - [License details](#license-details)
+    - [Overview](#overview)
+        - [Features](#features)
+    - [:heavy_exclamation_mark: Disclaimer](#heavy_exclamation_mark-disclaimer)
+    - [Prerequisites](#prerequisites)
+        - [Database Setup](#database-setup)
+        - [.env File Setup](#env-file-setup)
+    - [Local Deployment](#local-deployment)
+    - [Docker Deployment](#docker-deployment)
+    - [Testing](#testing)
+    - [Demo videos](#demo-videos)
+    - [How to contribute](#how-to-contribute)
+    - [License](#license)
+        - [Third-party component licenses](#third-party-component-licenses)
+        - [License details](#license-details)
 
 :heavy_exclamation_mark: **Important!** Before you proceed, please read
 the [EUDI Wallet Reference Implementation project description](https://github.com/eu-digital-identity-wallet/.github/blob/main/profile/reference-implementation.md)
@@ -307,14 +308,14 @@ spring:
 
    The validation process implemented follows the following steps:
 
-   1. "Determine the number of VPs returned in the VP Token and identify in which VP which requested VC is included, using the Input Descriptor Mapping Object(s) in the Presentation Submission".
-   2. "Perform the checks on the Credential(s) specific to the Credential Format (i.e., validation of the signature(s) on each VC)":\
-      2.1. "Validate the certificate included in the MSO header".\
-      2.2. "Verify the digital signature of the IssuerAuth structure using the working_public_key, working_public_key_parameters, and working_public_key_algorithm from the certificate validation" (step 2.1).\
-      2.3. "Calculate the digest value for every IssuerSignedItem returned in the DeviceResponse structure and verify that these calculated digests equal the corresponding digest values in the MSO."\
-      2.4. "Calculate the digest value for every IssuerSignedItem returned in the DeviceResponse structure and verify that these calculated digests equal the corresponding digest values in the MSO."\
-      2.5. "Validate the elements in the ValidityInfo structure, i.e. verify that: the 'signed' date is within the validity period of the certificate in the MSO header, the current timestamp shall be equal or later than the ‘validFrom’ element and the 'validUntil' element shall be equal or later than the current timestamp."
-   3. "Confirm that the returned Credential(s) meet all criteria sent in the Presentation Definition in the Authorization Request."
+    1. "Determine the number of VPs returned in the VP Token and identify in which VP which requested VC is included, using the Input Descriptor Mapping Object(s) in the Presentation Submission".
+    2. "Perform the checks on the Credential(s) specific to the Credential Format (i.e., validation of the signature(s) on each VC)":\
+       2.1. "Validate the certificate included in the MSO header".\
+       2.2. "Verify the digital signature of the IssuerAuth structure using the working_public_key, working_public_key_parameters, and working_public_key_algorithm from the certificate validation" (step 2.1).\
+       2.3. "Calculate the digest value for every IssuerSignedItem returned in the DeviceResponse structure and verify that these calculated digests equal the corresponding digest values in the MSO."\
+       2.4. "Calculate the digest value for every IssuerSignedItem returned in the DeviceResponse structure and verify that these calculated digests equal the corresponding digest values in the MSO."\
+       2.5. "Validate the elements in the ValidityInfo structure, i.e. verify that: the 'signed' date is within the validity period of the certificate in the MSO header, the current timestamp shall be equal or later than the ‘validFrom’ element and the 'validUntil' element shall be equal or later than the current timestamp."
+    3. "Confirm that the returned Credential(s) meet all criteria sent in the Presentation Definition in the Authorization Request."
 
 ### Configure HSM
 
