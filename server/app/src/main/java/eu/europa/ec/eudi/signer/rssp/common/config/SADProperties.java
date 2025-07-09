@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "sad")
 public class SADProperties extends TokenCommonConfig {
-	@Value("${auth.sadTokenSecret}")
+	/*@Value("${auth.sadTokenSecret}")
 	private String secret;
 
 	@Override
@@ -16,5 +16,5 @@ public class SADProperties extends TokenCommonConfig {
 	@Override
 	public void setSecret(String secret) {
 		this.secret = secret;
-	}
+	}*/
 }

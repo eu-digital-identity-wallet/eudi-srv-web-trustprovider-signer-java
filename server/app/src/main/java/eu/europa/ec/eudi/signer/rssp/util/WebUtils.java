@@ -21,6 +21,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -144,7 +145,7 @@ public class WebUtils {
         SSLContext sslContext = SSLContext.getInstance("TLS");
         sslContext.init(keystore, tm, null);
 
-        HttpClient httpClient = HttpClients.custom().setSSLContext(sslContext).build();
+        HttpClient httpClient = HttpClients.custom().setSSLContext(sslContext).setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE).build();
         return httpPostRequestCommon(httpClient, url, headers, jsonBody);
     }
 }

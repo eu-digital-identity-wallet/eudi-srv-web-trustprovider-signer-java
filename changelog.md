@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.4.0]
+
+_07 Jul 2025_
+
+### Added
+
+- New CA Certificates to 'issuersCertificates' folder.
+- Docker support for the application:
+  - Added Dockerfile to build the application image.
+  - Added docker-compose.yml.
+  - Instructions for building and running the container added to README.md.
+
+### Changed
+
+- Updated what information is retrieved from the OID4VP VP Token. 
+- Upgraded id.walt:waltid-mdoc-jvm dependency and updated its repository.
+- Bumped versions of various dependencies.
+- Updated OpenID4VP validation process.
+
 ## [0.3.0]
 
 _12 Jun 2024_

@@ -50,7 +50,7 @@ public class LogsController {
                           @Autowired DataSourceConfig dataSourceConfig, @Autowired LoggerUtil loggerUtil) {
         this.userService = userService;
         this.repository = logsUserRepository;
-        this.events = EventRepository.event(dataSourceConfig.getDatasourceUsername(), dataSourceConfig.getDatasourcePassword());
+        this.events = EventRepository.event(dataSourceConfig.getDatasourceUrl(), dataSourceConfig.getDatasourceUsername(), dataSourceConfig.getDatasourcePassword());
         this.formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         this.loggerUtil = loggerUtil;
     }

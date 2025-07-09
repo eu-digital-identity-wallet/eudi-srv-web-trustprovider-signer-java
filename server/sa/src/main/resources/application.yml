@@ -19,6 +19,8 @@ security:
     ignored: /**
 
 spring:
+    #config:
+    #    import: file:../.env[.properties]
     servlet:
         multipart:
             enabled: true
@@ -31,10 +33,11 @@ file:
     extensions: pdf
 
 rssp:
-    cscBaseUrl: http://localhost:8082/csc/v1
+    apiBaseUrl: ${ASSINA_RSSP_BASE_URL}/api/v1
+    cscBaseUrl: ${ASSINA_RSSP_BASE_URL}/csc/v1
 
 logging:
     level:
-        org:
-            springframework:
-                security: TRACE
+        root: INFO
+        org.springframework.web: INFO
+        org.springframework.security: INFO

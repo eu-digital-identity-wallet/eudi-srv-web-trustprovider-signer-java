@@ -20,10 +20,18 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "rssp")
 public class RSSPClientConfig {
-
+    private String apiBaseUrl;
     private String cscBaseUrl;
 
-    public String setCscBaseUrl() {
+    public String getApiBaseUrl() {
+        return apiBaseUrl;
+    }
+
+    public void setApiBaseUrl(String apiBaseUrl) {
+        this.apiBaseUrl = apiBaseUrl;
+    }
+
+    public String getCscBaseUrl() {
         return cscBaseUrl;
     }
 

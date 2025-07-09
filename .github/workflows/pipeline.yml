@@ -1,0 +1,92 @@
+name: rQES TrustProvider Signer Image Builder
+
+on:
+  push:
+    tags: [ 'v..*' ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.10.0
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.DOCKER_IMAGE_TOKEN  }}
+
+      # --- server-app ---
+      - name: Extract Docker metadata for TrustProvider Signer Server App
+        id: meta-trust-provider-signer-server-app
+        uses: docker/metadata-action@v5.7.0
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-server-app
+
+      - name: Build and push TrustProvider Signer Server App image
+        id: build-and-push-trust-provider-signer-server-app
+        uses: docker/build-push-action@v6.15.0
+        with:
+          context: server
+          file: server/app/Dockerfile
+          push: true
+          tags: ${{ steps.meta-trust-provider-signer-server-app.outputs.tags }}
+          labels: ${{ steps.meta-trust-provider-signer-server-app.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+
+      # --- server-sa ---
+      - name: Extract Docker metadata for TrustProvider Signer Server SA
+        id: meta-trust-provider-signer-server-sa
+        uses: docker/metadata-action@v5.7.0
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-server-sa
+
+      - name: Build and push TrustProvider Signer Server SA image
+        id: build-and-push-trust-provider-signer-server-sa
+        uses: docker/build-push-action@v6.15.0
+        with:
+          context: server
+          file: server/sa/Dockerfile
+          push: true
+          tags: ${{ steps.meta-trust-provider-signer-server-sa.outputs.tags }}
+          labels: ${{ steps.meta-trust-provider-signer-server-sa.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+
+      # --- client ---
+      - name: Extract Docker metadata for TrustProvider Signer Client
+        id: meta-trust-provider-signer-client
+        uses: docker/metadata-action@v5.7.0
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-client
+
+      - name: Build and push TrustProvider Signer CLIENT image
+        id: build-and-push-trust-provider-signer-client
+        uses: docker/build-push-action@v6.15.0
+        with:
+          context: client
+          file: client/Dockerfile
+          push: true
+          tags: ${{ steps.meta-trust-provider-signer-client.outputs.tags }}
+          labels: ${{ steps.meta-trust-provider-signer-client.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false

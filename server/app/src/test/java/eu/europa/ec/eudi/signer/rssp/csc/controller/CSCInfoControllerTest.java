@@ -59,7 +59,7 @@ public class CSCInfoControllerTest {
     this.mockMvc.perform(post("/csc/v1/info/"))
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(jsonPath("name", is("Assina")));
+        .andExpect(jsonPath("name", is("TrustProviderSigner")));
   }
 
   private String asJson(final Object object) throws JsonProcessingException {
