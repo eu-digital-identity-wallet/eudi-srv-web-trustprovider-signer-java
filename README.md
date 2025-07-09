@@ -210,7 +210,7 @@ You can either update the next parameters directly in the _application.yml_ file
 ```
 spring:
     config:
-      import: file:.env[.properties]
+      import: file:../.env[.properties]
 ```
 
 1. **Update the Datasource Configuration**
@@ -350,7 +350,7 @@ You can either update the next parameters directly in the _application.yml_ file
 ```
 spring:
     config:
-      import: file:.env[.properties]
+      import: file:../.env[.properties]
 ```
 
 1. **Update App's CSC Url**

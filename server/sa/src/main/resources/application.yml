@@ -20,7 +20,7 @@ security:
 
 spring:
     #config:
-    #    import: file:.env[.properties]
+    #    import: file:../.env[.properties]
     servlet:
         multipart:
             enabled: true
