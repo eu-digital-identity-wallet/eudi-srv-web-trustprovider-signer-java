@@ -29,9 +29,6 @@ public class CSCProperties {
     // properties for controlling the API
     private Api api;
 
-    // properties for controlling crypto algos, signing etc for CSC
-    private Crypto crypto;
-
     public Info getInfo() {
         return info;
     }
@@ -48,58 +45,8 @@ public class CSCProperties {
         this.api = api;
     }
 
-    public Crypto getCrypto() {
-        return crypto;
-    }
-
-    public void setCrypto(Crypto crypto) {
-        this.crypto = crypto;
-    }
-
     // All CSC info properties are in the YAML file or environment
     public static class Info extends AbstractInfo {
-    }
-
-    public static class Crypto {
-        private String keyAlgorithm;
-        private int keySize;
-        private String signatureAlgorithm;
-
-        /**
-         * Key generation algorithm name
-         * Example: "RSA"
-         */
-        public String getKeyAlgorithm() {
-            return keyAlgorithm;
-        }
-
-        public void setKeyAlgorithm(String keyAlgorithm) {
-            this.keyAlgorithm = keyAlgorithm;
-        }
-
-        /**
-         * Certificate Signature algorithm name: must correspond with the key algorithm
-         * Example "SHA256WithRSA" (corresponds with "RSA")
-         */
-        public String getSignatureAlgorithm() {
-            return signatureAlgorithm;
-        }
-
-        public void setSignatureAlgorithm(String signatureAlgorithm) {
-            this.signatureAlgorithm = signatureAlgorithm;
-        }
-
-        /**
-         * Key size in bits
-         * Example: 2048
-         */
-        public int getKeySize() {
-            return keySize;
-        }
-
-        public void setKeySize(int keySize) {
-            this.keySize = keySize;
-        }
     }
 
     public static class Api {

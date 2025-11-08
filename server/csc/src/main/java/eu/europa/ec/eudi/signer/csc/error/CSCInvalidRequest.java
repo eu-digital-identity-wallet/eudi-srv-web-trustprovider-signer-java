@@ -19,7 +19,7 @@ package eu.europa.ec.eudi.signer.csc.error;
 import eu.europa.ec.eudi.signer.common.ApiError;
 
 /**
- * Enum holding all of the Assina error codes and descriptions
+ * Enum holding all the error codes and descriptions
  */
 public enum CSCInvalidRequest implements ApiError {
 
@@ -76,8 +76,6 @@ public enum CSCInvalidRequest implements ApiError {
   InvalidPin("The PIN is invalid"),
   LockedPin("PIN locked"),
 
-  // TODO looks like it needs to be parameterized but this could cause reflected
-  // XSS
   Invalid("Signing certificate 'O=[organization],CN=[common_name]' is expired");
 
   private String description;

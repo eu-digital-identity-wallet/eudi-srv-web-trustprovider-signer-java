@@ -29,34 +29,24 @@ import java.util.*;
 import org.json.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import eu.europa.ec.eudi.signer.rssp.common.config.TrustedIssuersCertificatesProperties;
 import eu.europa.ec.eudi.signer.rssp.util.WebUtils;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
-import javax.security.auth.x500.X500Principal;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 
-@Component
 public class EJBCAService {
-
     private static final Logger log = LoggerFactory.getLogger(EJBCAService.class);
-
     private final EJBCAProperties ejbcaProperties;
 
-    private final TrustedIssuersCertificatesProperties trustedIssuersCertificates;
-
-    public EJBCAService(@Autowired EJBCAProperties properties,
-            @Autowired TrustedIssuersCertificatesProperties trustedIssuersCertificates) {
+    public EJBCAService(EJBCAProperties properties) {
         this.ejbcaProperties = properties;
-        this.trustedIssuersCertificates = trustedIssuersCertificates;
     }
 
     public String getCertificateAuthorityNameByCountry(String countryCode){
@@ -181,10 +171,6 @@ public class EJBCAService {
             }
         }
         return certs;
-    }
-
-    public X509Certificate searchForIssuerCertificate(X500Principal issuer) {
-        return this.trustedIssuersCertificates.getTrustIssuersCertificates().get(issuer.toString());
     }
 
     // If the value false is return then the issuerDN certificate is NOT revoked.

@@ -285,7 +285,7 @@ public class VerifierClient {
 
         VerifierCreatedVariable variables = verifierVariables.getUsersVerifierCreatedVariable(user, "cross", type);
         if (variables == null) {
-			log.error("{} Variables required to receive answer from the Verifier were not found.", SignerError.UnexpectedError.getFormattedMessage());
+			log.error("{} Variables required to receive answer from the Verifier were not found.", SignerError.UnexpectedError.getCode());
             throw new ApiException(SignerError.UnexpectedError, SignerError.UnexpectedError.getFormattedMessage());
         }
         String nonce = variables.getNonce();

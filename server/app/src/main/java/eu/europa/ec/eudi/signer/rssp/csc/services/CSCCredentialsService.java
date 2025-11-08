@@ -16,11 +16,10 @@
 
 package eu.europa.ec.eudi.signer.rssp.csc.services;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import eu.europa.ec.eudi.signer.rssp.api.services.CredentialService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import eu.europa.ec.eudi.signer.common.AccessCredentialDeniedException;
@@ -31,22 +30,17 @@ import eu.europa.ec.eudi.signer.csc.model.CSCConstants;
 import eu.europa.ec.eudi.signer.csc.model.CertificateStatus;
 import eu.europa.ec.eudi.signer.csc.payload.*;
 import eu.europa.ec.eudi.signer.rssp.api.model.LoggerUtil;
-import eu.europa.ec.eudi.signer.rssp.api.services.CredentialService;
 import eu.europa.ec.eudi.signer.rssp.api.services.UserService;
-import eu.europa.ec.eudi.signer.rssp.common.PaginationHelper;
 import eu.europa.ec.eudi.signer.rssp.common.error.ApiException;
 import eu.europa.ec.eudi.signer.rssp.common.error.SignerError;
 import eu.europa.ec.eudi.signer.rssp.common.error.VPTokenInvalid;
 import eu.europa.ec.eudi.signer.rssp.common.error.VerifiablePresentationVerificationException;
 import eu.europa.ec.eudi.signer.rssp.entities.Credential;
-import eu.europa.ec.eudi.signer.rssp.crypto.CryptoService;
-import eu.europa.ec.eudi.signer.rssp.ejbca.EJBCAService;
 import eu.europa.ec.eudi.signer.rssp.entities.User;
 import eu.europa.ec.eudi.signer.rssp.security.UserPrincipal;
 import eu.europa.ec.eudi.signer.rssp.security.openid4vp.OpenId4VPService;
 import eu.europa.ec.eudi.signer.rssp.security.openid4vp.VerifierClient;
 import eu.europa.ec.eudi.signer.rssp.util.CertificateUtils;
-
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -59,118 +53,83 @@ import java.util.Optional;
 @Service
 public class CSCCredentialsService {
 
+	private static final Logger logger = LoggerFactory.getLogger(CSCCredentialsService.class);
+
 	// Allowed values for the certificates attribute: not used in payload but
 	// derived in validation
 	public enum CertificatesRequest {
 		none, single, chain
 	}
 
-	private final PaginationHelper paginationHelper;
-	private final VerifierClient verifierClient;
-	private final OpenId4VPService userOID4VPService;
-	private final EJBCAService ejbcaService;
-	private final CredentialService credentialService;
+	private final OpenId4VPService openId4VPService;
 	private final UserService userService;
-	private final CryptoService cryptoService;
 	private final CSCSADProvider sadProvider;
+	private final CredentialService credentialService;
 	private final LoggerUtil loggerUtil;
 
-	private static final Logger logger = LogManager.getLogger(CSCCredentialsService.class);
-
-	public CSCCredentialsService(@Autowired PaginationHelper paginationHelper, @Autowired VerifierClient verifierClient,
-								 @Autowired OpenId4VPService userOID4VPService, @Autowired EJBCAService ejbcaService,
-								 CredentialService credentialService, UserService userService, CryptoService cryptoService,
-								 CSCSADProvider sadProvider, @Autowired LoggerUtil loggerUtil) {
-		this.paginationHelper = paginationHelper;
-		this.verifierClient = verifierClient;
-		this.userOID4VPService = userOID4VPService;
-		this.ejbcaService = ejbcaService;
-		this.credentialService = credentialService;
+	public CSCCredentialsService(@Autowired OpenId4VPService openId4VPService,
+								 @Autowired UserService userService,
+								 @Autowired CSCSADProvider sadProvider,
+								 @Autowired CredentialService credentialService,
+								 @Autowired LoggerUtil loggerUtil) {
+		this.openId4VPService = openId4VPService;
 		this.userService = userService;
-		this.cryptoService = cryptoService;
 		this.sadProvider = sadProvider;
+		this.credentialService = credentialService;
 		this.loggerUtil = loggerUtil;
 	}
 
-	public CSCCredentialsListResponse listCredentials(CSCCredentialsListRequest listRequest) {
-		Pageable pageable;
-		String nextPageToken;
-		try {
-			pageable = paginationHelper.pageTokenToPageable(listRequest.getPageToken(), listRequest.getMaxResults());
-			nextPageToken = paginationHelper.pageableToNextPageToken(pageable);
-		} catch (Exception e) {
-			throw new ApiException(CSCInvalidRequest.InvalidPageToken, e);
-		}
-
-		final Page<Credential> credentialsPage = credentialService.getCredentialsByOwner(listRequest.getUserId(),
-				pageable);
-
-		List<CredentialInfo> credentialAliases = new ArrayList<>();
-		for (Credential ac : credentialsPage) {
-			CredentialInfo ci = new CredentialInfo(ac.getAlias(), ac.getIssuerDN(), ac.getSubjectDN(),
-					ac.getValidFrom(), ac.getValidTo());
-			credentialAliases.add(ci);
-		}
-
-		CSCCredentialsListResponse response = new CSCCredentialsListResponse();
-		response.setCredentialInfo(credentialAliases);
-		// don't set the next page token if its the last page
-		if (credentialsPage.isLast()) {
-			nextPageToken = null;
-		}
-		response.setNextPageToken(nextPageToken);
-		return response;
-	}
-
-	public CSCCredentialsInfoResponse getCredentialsInfoFromAlias(UserPrincipal userPrincipal,
-			CSCCredentialsInfoRequest infoRequest) {
+	public CSCCredentialsInfoResponse getCredentialsInfoFromAlias(UserPrincipal userPrincipal, CSCCredentialsInfoRequest infoRequest) {
 
 		final String credentialAlias = infoRequest.getCredentialID();
-		final Credential credential = loadCredential(userPrincipal.getId(), credentialAlias);
+
+		// retrieve the credential that belongs to the user with the given alias
+		final Credential credential = this.credentialService.getCredentialWithAlias(userPrincipal.getId(), credentialAlias)
+			  .orElseThrow(
+					() -> new ApiException(CSCInvalidRequest.InvalidCredentialId,
+						  "No credential found with the given Id", credentialAlias));
 
 		CSCCredentialsInfoResponse response = new CSCCredentialsInfoResponse();
 
-		// One of implicit | explicit | oauth2code
 		response.setAuthMode(CSCConstants.CSC_AUTH_MODE);
 		response.setDescription(credential.getDescription());
-		// this value matches that in credential/authorize
 		response.setMultisign(CSCConstants.CSC_MAX_REQUEST_SIGNATURES);
-		// “1”: The hash to-be-signed is not linked to the signature activation data.
 		response.setSCAL(CSCConstants.CSC_SCAL);
 		response.setKey(buildKeyInfo(credential));
+		response.setCert(getCertInCredentialInfoResponse(credential, infoRequest.getCertificates(), infoRequest.isCertInfo()));
+		if (infoRequest.isAuthInfo()) {
+			response.setPIN(buildPINInfo());
+			response.setOTP(buildOTPInfo());
+		}
+		return response;
+	}
 
+	private CSCCredentialsInfoResponse.Cert getCertInCredentialInfoResponse(Credential credential, String certificates, boolean isCertInfo){
 		CSCCredentialsInfoResponse.Cert cert = new CSCCredentialsInfoResponse.Cert();
-		final String pemCertificate = credential.getCertificate();
-		final X509Certificate x509Certificate = cryptoService.pemToX509Certificate(pemCertificate);
 		List<String> cscCertificates = new ArrayList<>();
-		switch (toCertsRequest(infoRequest.getCertificates())) {
+
+		final String pemCertificate = credential.getCertificate();
+		switch (toCertsRequest(certificates)) {
 			case none:
 				break;
 			case single:
-				// certificates are already stored as PEM strings which are Base64 encoded
-				cscCertificates.add(pemCertificate);
+				cscCertificates.add(pemCertificate); // certificates are already stored as PEM strings which are Base64 encoded
 				break;
 			case chain:
 				throw new IllegalArgumentException("Not Yet Implmented");
 		}
 		cert.setCertificates(cscCertificates);
 
-		if (infoRequest.isCertInfo()) {
+		final X509Certificate x509Certificate = credentialService.pemToX509(pemCertificate);
+		if (isCertInfo) {
 			addCertInfo(cert, x509Certificate);
 		}
-		response.setCert(cert);
-		if (cryptoService.isCertificateExpired(x509Certificate)) {
+		if (credentialService.isCertificateExpired(x509Certificate)) {
 			cert.setStatus(CertificateStatus.expired.name());
 		} else {
 			cert.setStatus(CertificateStatus.valid.name());
 		}
-
-		if (infoRequest.isAuthInfo()) {
-			response.setPIN(buildPINInfo());
-			response.setOTP(buildOTPInfo());
-		}
-
-		return response;
+		return cert;
 	}
 
 	/** helper to convert the string certificates property to an enum */
@@ -179,13 +138,10 @@ public class CSCCredentialsService {
 			try {
 				return CertificatesRequest.valueOf(certificates);
 			} catch (IllegalArgumentException e) {
-				// certificates was not one of none, single or chain, which is an error
 				throw new ApiException(CSCInvalidRequest.InvalidCertificatesParameter);
 			}
-		} else {
-			// certificates is optional and defaults to single
-			return CertificatesRequest.single;
 		}
+		return CertificatesRequest.single; // certificates is optional and defaults to single
 	}
 
 	/**
@@ -195,15 +151,11 @@ public class CSCCredentialsService {
 	 * is true in the request
 	 */
 	private void addCertInfo(CSCCredentialsInfoResponse.Cert cert, X509Certificate x509Certificate) {
-		cert.setIssuerDN(x509Certificate.getIssuerDN().getName());
-		cert.setSubjectDN(x509Certificate.getSubjectDN().getName());
+		cert.setIssuerDN(x509Certificate.getIssuerX500Principal().getName());
+		cert.setSubjectDN(x509Certificate.getSubjectX500Principal().getName());
 		cert.setSerialNumber(String.valueOf(x509Certificate.getSerialNumber()));
-
-		// per CSC spec: encoded as GeneralizedTime (RFC 5280 [8]) e.g.
-		// “YYYYMMDDHHMMSSZ”
-		cert.setValidFrom(CertificateUtils.x509Date(x509Certificate.getNotBefore()));
+		cert.setValidFrom(CertificateUtils.x509Date(x509Certificate.getNotBefore())); // per CSC spec: encoded as GeneralizedTime (RFC 5280 [8]) e.g. “YYYYMMDDHHMMSSZ”
 		cert.setValidTo(CertificateUtils.x509Date(x509Certificate.getNotAfter()));
-
 	}
 
 	private CSCCredentialsInfoResponse.OTP buildOTPInfo() {
@@ -232,15 +184,8 @@ public class CSCCredentialsService {
 		return key;
 	}
 
-	protected Credential loadCredential(String owner, String credentialAlias) {
-		return credentialService.getCredentialWithAlias(owner, credentialAlias)
-				.orElseThrow(
-						() -> new ApiException(CSCInvalidRequest.InvalidCredentialId,
-								"No credential found with the given Id", credentialAlias));
-	}
-
 	/**
-	 * Valdiate the PIN provioded and generate a SAD token for the user to authorize
+	 * Validate the PIN provided and generate a SAD token for the user to authorize
 	 * the credentials.
 	 *
 	 * @param userPrincipal    user making the request - must own the credentials
@@ -260,39 +205,32 @@ public class CSCCredentialsService {
 		}
 
 		CSCCredentialsAuthorizeResponse response = new CSCCredentialsAuthorizeResponse();
-		response = authorizeCredentialWithOID4VP(user.get(), authorizeRequest, response);
-		return response;
+		return authorizeCredentialWithOID4VP(user.get(), authorizeRequest, response);
 	}
 
-	public CSCCredentialsAuthorizeResponse authorizeCredentialWithOID4VP(User user, CSCCredentialsAuthorizeRequest authorizeRequest, CSCCredentialsAuthorizeResponse response)
+	private CSCCredentialsAuthorizeResponse authorizeCredentialWithOID4VP(User user, CSCCredentialsAuthorizeRequest authorizeRequest, CSCCredentialsAuthorizeResponse response)
 			throws FailedConnectionVerifier, TimeoutException, ApiException, AccessCredentialDeniedException, VerifiablePresentationVerificationException, VPTokenInvalid {
 		final String credentialID = authorizeRequest.getCredentialID();
 		User loaded = null;
 
 		try {
-			String message;
+			Map<Integer, String> logsMap = new HashMap<>();
 			System.out.println(authorizeRequest.getCode());
 			if(authorizeRequest.getCode() != null)
-				message = verifierClient.getVPTokenFromVerifier(user.getId(), VerifierClient.Authorization, authorizeRequest.getCode());
+				loaded = openId4VPService.getVPTokenFromVerifierAndReturnUser(user.getId(), VerifierClient.Authorization, authorizeRequest.getCode(), logsMap);
 			else
-				message = verifierClient.getVPTokenFromVerifierRecursive(user.getId(), VerifierClient.Authorization);
-			Map<Integer, String> logsMap = new HashMap<>();
-			loaded = this.userOID4VPService.loadUserFromVerifierResponse(message, this.ejbcaService, logsMap);
+				loaded = openId4VPService.pollVPTokenAndReturnUser(user.getId(), VerifierClient.Authorization, logsMap);
+
 			for (Entry<Integer, String> l : logsMap.entrySet())
 				loggerUtil.logsUser(1, user.getId(), l.getKey(), l.getValue());
 
 		} catch (FailedConnectionVerifier e) {
-			String logMessage = SignerError.FailedConnectionToVerifier.getCode() + ": "
-					+ SignerError.FailedConnectionToVerifier.getDescription();
-			logger.error(logMessage);
+			logger.error(SignerError.FailedConnectionToVerifier.getFormattedMessage());
 			loggerUtil.logsUser(0, user.getId(), 6, "");
 			throw e;
 
 		} catch (TimeoutException e) {
-			String logMessage = SignerError.ConnectionVerifierTimedOut.getCode()
-					+ "(authorizeCredentialWithOID4VP in CSCCredentialsService.class): "
-					+ SignerError.ConnectionVerifierTimedOut.getDescription();
-			logger.error(logMessage);
+			logger.error(SignerError.ConnectionVerifierTimedOut.getFormattedMessage());
 			loggerUtil.logsUser(0, user.getId(), 6, "");
 			throw e;
 
@@ -357,7 +295,7 @@ public class CSCCredentialsService {
 	 * 
 	 * @param userPrincipal the user that made the request
 	 * @return the deep link
-	 * @throws ApiException exceptions that could occorred (logs for debug and for
+	 * @throws ApiException exceptions that could occurred (logs for debug and for
 	 *                      the user where already created)
 	 */
 	public RedirectLinkResponse authorizationLinkCredential(UserPrincipal userPrincipal, String redirect_uri) throws ApiException {
@@ -373,7 +311,7 @@ public class CSCCredentialsService {
 		}
 
 		try {
-			response = this.verifierClient.initPresentationTransaction(optionalUserOID4VP.get().getId(), VerifierClient.Authorization, redirect_uri);
+			response = this.openId4VPService.getRedirectLink(optionalUserOID4VP.get().getId(), VerifierClient.Authorization, redirect_uri);
 			return response;
 		} catch (ApiException e) {
 			loggerUtil.logsUser(0, id, 6, e.getMessage());

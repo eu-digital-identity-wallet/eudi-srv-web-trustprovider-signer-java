@@ -10,7 +10,8 @@
 .idea
 .vscode
 node_modules/jquery
-
+/datadbdir
+/ejbca
 
 /files/*
 /server/app/src/main/resources/application-auth.yml

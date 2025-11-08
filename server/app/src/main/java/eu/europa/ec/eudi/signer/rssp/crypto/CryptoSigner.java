@@ -19,28 +19,20 @@ package eu.europa.ec.eudi.signer.rssp.crypto;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serial;
 import java.security.MessageDigest;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.Base64;
 import java.util.List;
 
-import org.bouncycastle.asn1.ASN1InputStream;
-import org.bouncycastle.asn1.cms.ContentInfo;
+import eu.europa.ec.eudi.signer.rssp.common.error.ApiException;
+import eu.europa.ec.eudi.signer.rssp.common.error.SignerError;
+import eu.europa.ec.eudi.signer.rssp.crypto.certificates.PemConverter;
+import eu.europa.ec.eudi.signer.rssp.crypto.keys.IKeysService;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cms.CMSException;
 import org.bouncycastle.cms.CMSSignedData;
-import org.bouncycastle.cms.SignerInformation;
-import org.bouncycastle.cms.SignerInformationStore;
-import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
-import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.util.Store;
-
-import eu.europa.ec.eudi.signer.rssp.hsm.HSMService;
-
 import eu.europa.esig.dss.cades.signature.CMSSignedDocument;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.EncryptionAlgorithm;
@@ -55,11 +47,50 @@ import eu.europa.esig.dss.pades.signature.ExternalCMSService;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.validation.CertificateVerifier;
 import eu.europa.esig.dss.validation.CommonCertificateVerifier;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * Utility for signing data like document hashes
  */
+@Service
 public class CryptoSigner {
+    private final PemConverter pemConverter;
+    private final IKeysService keysService;
+
+    public CryptoSigner(@Autowired IKeysService keysService) {
+        this.pemConverter = new PemConverter();
+        this.keysService = keysService;
+    }
+
+    /**
+     * Function that allows to sign the data of a pdf document
+     *
+     * @param dataToSignB64       the data of the pdf
+     * @param pemCertificate      the certificate to use to sign the pdf
+     * @param pemCertificateChain the certificate chain associated to the
+     *                            certificate
+     * @param signingKeyWrapped   the signing key created previously by the user
+     * @param signingAlgo         the signing algorithm
+     * @param signingAlgoParams   the signe parameters
+     * @return the value of the signature
+     */
+    public String signWithPemCertificate(String dataToSignB64, String pemCertificate, List<String> pemCertificateChain,
+                                         byte[] signingKeyWrapped, String signingAlgo, String signingAlgoParams) throws ApiException  {
+        X509Certificate x509Certificate = this.pemConverter.stringToCertificate(pemCertificate);
+
+        List<X509Certificate> x509CertificateChain = new ArrayList<>();
+        for (String s : pemCertificateChain)
+            x509CertificateChain.add(this.pemConverter.stringToCertificate(s));
+
+        try {
+            byte[] dataToSign = Base64.getDecoder().decode(dataToSignB64);
+            final byte[] bytes = signData(dataToSign, x509Certificate, x509CertificateChain, signingKeyWrapped);
+            return Base64.getEncoder().encodeToString(bytes);
+        } catch (Exception e) {
+            throw new ApiException(SignerError.FailedSigningData, e);
+        }
+    }
 
     /**
      * Cryptographically sign the given data with the supplied signature and private
@@ -73,9 +104,7 @@ public class CryptoSigner {
      * @return signature for provided data
      */
 
-    public byte[] signData(byte[] data, final X509Certificate signingCertificate,
-            List<X509Certificate> certificateChain, final byte[] signingKey, HSMService hsmService) throws Exception {
-
+    private DSSMessageDigest getMessageDigestFromByteArray(byte[] data) throws IOException {
         final MessageDigest digest = DSSUtils.getMessageDigest(DigestAlgorithm.SHA256);
         InputStream inputStream = new ByteArrayInputStream(data);
         byte[] b = new byte[4096];
@@ -83,11 +112,15 @@ public class CryptoSigner {
         while ((count = inputStream.read(b)) > 0) {
             digest.update(b, 0, count);
         }
-        DSSMessageDigest messageDigest = new DSSMessageDigest(DigestAlgorithm.SHA256, digest.digest());
+		return new DSSMessageDigest(DigestAlgorithm.SHA256, digest.digest());
+    }
 
-        PAdESSignatureParameters parameters = new PAdESSignatureParameters();
+    private byte[] signData(byte[] data, final X509Certificate signingCertificate, List<X509Certificate> certificateChain, byte[] signingKey) throws Exception {
+        DSSMessageDigest messageDigest = getMessageDigestFromByteArray(data);
+
+        /*PAdESSignatureParameters parameters = new PAdESSignatureParameters();
         parameters.setSignatureLevel(SignatureLevel.PAdES_BASELINE_B);
-        parameters.setEncryptionAlgorithm(EncryptionAlgorithm.RSA);
+        parameters.setEncryptionAlgorithm(EncryptionAlgorithm.RSA);*/
 
         CertificateVerifier cv = new CommonCertificateVerifier();
         ExternalCMSService padesCMSGeneratorService = new ExternalCMSService(cv);
@@ -107,54 +140,15 @@ public class CryptoSigner {
         ToBeSigned dataToSign = padesCMSGeneratorService.getDataToSign(messageDigest, signatureParameters);
 
         // Sign the DTBS using a private key connection or remote-signing service
-        byte[] signatureHSM = hsmService.signDTBSwithRSAPKCS11(signingKey, dataToSign.getBytes());
+        byte[] signatureHSM = this.keysService.sign(signingKey, dataToSign.getBytes());
 
         SignatureValue signatureValue = new SignatureValue();
         signatureValue.setAlgorithm(SignatureAlgorithm.RSA_SHA256);
         signatureValue.setValue(signatureHSM);
 
-        // Create a CMS signature using the provided message-digest, signature
-        // parameters and the signature value
-        CMSSignedDocument cmsSignature = padesCMSGeneratorService.signMessageDigest(messageDigest, signatureParameters,
-                signatureValue);
+        // Create a CMS signature using the provided message-digest, signature parameters and the signature value
+        CMSSignedDocument cmsSignature = padesCMSGeneratorService.signMessageDigest(messageDigest, signatureParameters, signatureValue);
         CMSSignedData signedData = cmsSignature.getCMSSignedData();
-        signedData.getSignerInfos().getSigners()
-                .forEach(x -> System.out.println(x.getEncryptionAlgOID() + " & " + x.getDigestAlgOID())); // sha256WithRSAEncryption
-                                                                                                          // &
-        System.out.println(signedData.getSignedContentTypeOID()); // data
-        for (AlgorithmIdentifier alg : signedData.getDigestAlgorithmIDs()) { // sha-256
-            System.out.println(alg.toASN1Primitive().toString());
-        }
-
-        return cmsSignature.getCMSSignedData().getEncoded();
+        return signedData.getEncoded();
     }
-
-    /**
-     * Verfies the signed data
-     * 
-     * @param signedData
-     * @return
-     * @throws CMSException
-     * @throws IOException
-     * @throws OperatorCreationException
-     * @throws CertificateException
-     */
-    public boolean verifSignData(final byte[] signedData)
-            throws CMSException, IOException, OperatorCreationException, CertificateException {
-        // TODO remove this or pass in the certs
-        ByteArrayInputStream bIn = new ByteArrayInputStream(signedData);
-        ASN1InputStream aIn = new ASN1InputStream(bIn);
-        CMSSignedData s = new CMSSignedData(ContentInfo.getInstance(aIn.readObject()));
-        aIn.close();
-        bIn.close();
-        Store certs = s.getCertificates();
-        SignerInformationStore signers = s.getSignerInfos();
-        Collection<SignerInformation> c = signers.getSigners();
-        SignerInformation signer = c.iterator().next();
-        Collection<X509CertificateHolder> certCollection = certs.getMatches(signer.getSID());
-        Iterator<X509CertificateHolder> certIt = certCollection.iterator();
-        X509CertificateHolder certHolder = certIt.next();
-		return signer.verify(new JcaSimpleSignerInfoVerifierBuilder().build(certHolder));
-	}
-
 }

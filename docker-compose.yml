@@ -1,31 +1,102 @@
 services:
   trust_provider_signer_server_app:
     build:
-      context: server
+      context: ./server
       dockerfile: app/Dockerfile
     container_name: trust_provider_signer_server_app
     ports:
       - "8082:8082"
     env_file:
       - .env
-    volumes:
-      - {PATH_TO_HSM_CONFIG_FOLDER}:/opt/app/config/hsm/
-      - {PATH_TO_EJBCA_CONFIG_FOLDER}:/opt/app/config/ejbca/
+    #volumes:
+    #  - {PATH_TO_HSM_CONFIG_FOLDER}:/opt/app/config/hsm/
+    #  - {PATH_TO_EJBCA_CONFIG_FOLDER}:/opt/app/config/ejbca/
+    depends_on:
+      #ejbca:
+      #  condition: service_healthy
+      mysql:
+        condition: service_started
+    networks:
+      - backend
   trust_provider_signer_server_sa:
     build:
-      context: server
+      context: ./server
       dockerfile: sa/Dockerfile
     container_name: trust_provider_signer_server_sa
     ports:
       - "8083:8083"
     env_file:
-      - .env
+     - .env
+    networks:
+      - backend
   trust_provider_signer_client:
     build:
-      context: client
+      context: ./client
       dockerfile: Dockerfile
     container_name: trust_provider_signer_client
     ports:
       - "3000:3000"
     env_file:
       - .env
+    networks:
+      - backend
+  mysql:
+    image: mysql/mysql-server:latest
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: #SPRING_DATASOURCE_DB_NAME
+      MYSQL_USER: #SPRING_DATASOURCE_USERNAME
+      MYSQL_PASSWORD: #SPRING_DATASOURCE_PASSWORD
+      MYSQL_ROOT_PASSWORD: #DATABASE_ROOT_PASSWORD
+    ports:
+      - '3306:3306'
+    volumes:
+      - ./tools/db/create_database.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql-volume:/var/lib/mysql
+    networks:
+      - backend
+
+  #ejbca-database:
+  #  image: mariadb:latest
+  #  container_name: ejbca-database
+  #  restart: always
+  #  environment:
+  #    MYSQL_ROOT_PASSWORD: {database_root_user}
+  #    MYSQL_DATABASE: ejbca
+  #    MYSQL_USER: {database_ejbca_username}
+  #    MYSQL_PASSWORD: {database_ejbca_password}
+  #  volumes:
+  #    - ./datadbdir:/var/lib/mysql:rw
+  #  networks:
+  #    - application-bridge
+  #ejbca:
+  #  image: keyfactor/ejbca-ce:latest
+  #  container_name: ejbca
+  #  depends_on:
+  #    - ejbca-database
+  #  environment:
+  #    DATABASE_JDBC_URL: jdbc:mariadb://ejbca-database:3306/ejbca?characterEncoding=UTF-8
+  #    LOG_LEVEL_APP: INFO
+  #    LOG_LEVEL_SERVER: INFO
+  #    TLS_SETUP_ENABLED: simple
+  #  ports:
+  #    - "80:8080"
+  #    - "443:8443"
+  #  networks:
+  #    - application-bridge
+  #    - backend
+  #  healthcheck:
+  #    test: [ "CMD", "curl", "-f", "http://localhost:8080/ejbca/publicweb/healthcheck/ejbcahealth" ]
+  #    interval: 15s
+  #    timeout: 5s
+  #    retries: 20
+
+volumes:
+  mysql-volume:
+    driver: local
+networks:
+  backend:
+    driver: bridge
+  application-bridge:
+    driver: bridge

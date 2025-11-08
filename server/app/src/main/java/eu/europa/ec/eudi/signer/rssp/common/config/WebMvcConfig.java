@@ -16,6 +16,7 @@
 
 package eu.europa.ec.eudi.signer.rssp.common.config;
 
+import eu.europa.ec.eudi.signer.common.SignerConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;

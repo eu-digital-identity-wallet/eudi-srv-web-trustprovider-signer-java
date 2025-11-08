@@ -48,11 +48,9 @@ import eu.europa.ec.eudi.signer.rssp.security.openid4vp.VerifierClient;
 @RequestMapping("/auth")
 public class OpenId4VPController {
     private static final Logger log = LoggerFactory.getLogger(OpenId4VPController.class);
-    private final VerifierClient verifierClient;
     private final OpenId4VPService service;
 
-    public OpenId4VPController(@Autowired VerifierClient verifierClient, @Autowired OpenId4VPService service){
-        this.verifierClient = verifierClient;
+    public OpenId4VPController(@Autowired OpenId4VPService service){
         this.service = service;
     }
 
@@ -65,7 +63,7 @@ public class OpenId4VPController {
         try {
             Cookie cookie = generateCookie();
             String sessionCookie = cookie.getValue();
-            RedirectLinkResponse response = this.verifierClient.initPresentationTransaction(sessionCookie, VerifierClient.Authentication, redirect_uri_decoded);
+            RedirectLinkResponse response = this.service.getRedirectLink(sessionCookie, VerifierClient.Authentication, redirect_uri_decoded);
             ResponseEntity<RedirectLinkResponse> responseEntity = ResponseEntity.ok(response);
             httpResponse.addCookie(cookie);
             return responseEntity;
@@ -100,29 +98,17 @@ public class OpenId4VPController {
         log.info("response_code from Request: {}", code);
 
         try {
-            String messageFromVerifier = verifierClient.getVPTokenFromVerifier(session_id, VerifierClient.Authentication, code);
-            if (messageFromVerifier == null)
-                throw new Exception("Error when trying to obtain the vp_token from Verifier.");
-
-            AuthResponse JWTToken = this.service.loadUserFromVerifierResponseAndGetJWTToken(messageFromVerifier);
+            AuthResponse JWTToken = this.service.getVPTokenFromVerifierAndCreateOID4VPAuthToken(session_id, VerifierClient.Authentication, code);
             return ResponseEntity.ok(JWTToken);
         } catch (FailedConnectionVerifier e) {
-            String logMessage = SignerError.FailedConnectionToVerifier.getCode()
-                  + "(waitResponse in OpenId4VPController.class): "
-                  + SignerError.FailedConnectionToVerifier.getDescription();
-            log.error(logMessage);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                  .body(SignerError.FailedConnectionToVerifier.getFormattedMessage());
+            log.error(SignerError.FailedConnectionToVerifier.getFormattedMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(SignerError.FailedConnectionToVerifier.getFormattedMessage());
         } catch (TimeoutException e) {
-            String logMessage = SignerError.ConnectionVerifierTimedOut.getCode()
-                  + "(waitResponse in OpenId4VPController.class): "
-                  + SignerError.ConnectionVerifierTimedOut.getDescription();
-            log.error(logMessage);
+            log.error(SignerError.ConnectionVerifierTimedOut.getFormattedMessage());
             return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT)
                   .body(SignerError.ConnectionVerifierTimedOut.getFormattedMessage());
         } catch (VerifiablePresentationVerificationException e) {
-            String logMessage = e.getError().getCode() + " (waitResponse in OpenId4VPController.class) "
-                  + e.getError().getDescription() + ": " + e.getMessage();
+            String logMessage = "[" + e.getError().getCode() + "] "+ e.getError().getDescription() + ": " + e.getMessage();
             log.error(logMessage);
             return ResponseEntity.badRequest().body(e.getError().getFormattedMessage());
         } catch (VPTokenInvalid e) {
@@ -130,9 +116,7 @@ public class OpenId4VPController {
         } catch (ApiException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            String logMessage = SignerError.UnexpectedError.getCode()
-                  + " (waitResponse in OpenId4VPController.class) " + e.getMessage();
-            log.error(logMessage);
+			log.error("{} {}", SignerError.UnexpectedError.getCode(), e.getMessage());
             return ResponseEntity.badRequest().body(SignerError.UnexpectedError.getFormattedMessage());
         }
     }
@@ -140,24 +124,14 @@ public class OpenId4VPController {
     @GetMapping("token")
     public ResponseEntity<?> waitResponse(HttpServletRequest request, @CookieValue("JSESSIONID") String sessionCookie) {
         try {
-            String messageFromVerifier = verifierClient.getVPTokenFromVerifierRecursive(sessionCookie, VerifierClient.Authentication);
-            if (messageFromVerifier == null)
-                throw new Exception("Error when trying to obtain the vp_token from Verifier.");
-
-            AuthResponse JWTToken = this.service.loadUserFromVerifierResponseAndGetJWTToken(messageFromVerifier);
+            AuthResponse JWTToken = this.service.pollVPTokenAndCreateOID4VPAuthToken(sessionCookie, VerifierClient.Authentication);
             return ResponseEntity.ok(JWTToken);
         } catch (FailedConnectionVerifier e) {
-            String logMessage = SignerError.FailedConnectionToVerifier.getCode()
-                    + "(waitResponse in OpenId4VPController.class): "
-                    + SignerError.FailedConnectionToVerifier.getDescription();
-            log.error(logMessage);
+            log.error(SignerError.FailedConnectionToVerifier.getFormattedMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(SignerError.FailedConnectionToVerifier.getFormattedMessage());
         } catch (TimeoutException e) {
-            String logMessage = SignerError.ConnectionVerifierTimedOut.getCode()
-                    + "(waitResponse in OpenId4VPController.class): "
-                    + SignerError.ConnectionVerifierTimedOut.getDescription();
-            log.error(logMessage);
+            log.error(SignerError.ConnectionVerifierTimedOut.getFormattedMessage());
             return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT)
                     .body(SignerError.ConnectionVerifierTimedOut.getFormattedMessage());
         } catch (VerifiablePresentationVerificationException e) {
@@ -170,9 +144,7 @@ public class OpenId4VPController {
         } catch (ApiException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            String logMessage = SignerError.UnexpectedError.getCode()
-                    + " (waitResponse in OpenId4VPController.class) " + e.getMessage();
-            log.error(logMessage);
+			log.error("{} {}", SignerError.UnexpectedError.getCode(), e.getMessage());
             return ResponseEntity.badRequest().body(SignerError.UnexpectedError.getFormattedMessage());
         }
     }

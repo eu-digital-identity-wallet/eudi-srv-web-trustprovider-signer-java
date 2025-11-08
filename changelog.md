@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0]
+_7 Nov 2025_
+
+### Changed
+- Made the usage of EJBCA and HSM optional.
+- Refactored code for improved maintainability.
+
 ## [0.5.0]
 _15 Oct 2025_
 

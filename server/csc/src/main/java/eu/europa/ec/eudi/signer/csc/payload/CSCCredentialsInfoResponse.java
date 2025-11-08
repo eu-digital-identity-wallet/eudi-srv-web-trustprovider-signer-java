@@ -26,8 +26,7 @@ import java.util.List;
 public class CSCCredentialsInfoResponse {
 
     // OPTIONAL
-    // A free form description of the credential in the lang language. The maximum
-    // size of the string is 255 characters.
+    // A free form description of the credential in the lang language. The maximum size of the string is 255 characters.
     private String description;
 
     private Key key;
@@ -36,34 +35,25 @@ public class CSCCredentialsInfoResponse {
 
     // REQUIRED
     // One of implicit | explicit | oauth2code
-    // Specifies one of the authorization modes. For more information also see
-    // section 8.2:
-    // • “implicit”: the authorization process is managed by the remote service
-    // autonomously. Authentication factors are managed by the RSSP by
-    // interacting directly with the user, and not by the signature application.
-    // • “explicit”: the authorization process is managed by the signature
-    // application, which collects authentication factors like PIN or
-    // One-Time Passwords (OTP).
-    // • “oauth2code”: the authorization process is managed by the remote service
-    // using an OAuth 2.0 mechanism based on authoritzation code as
-    // described in Section 1.3.1 of RFC 6749 [11].
+    // Specifies one of the authorization modes. For more information also see  section 8.2:
+    // • “implicit”: the authorization process is managed by the remote service autonomously. Authentication factors
+    // are managed by the RSSP by interacting directly with the user, and not by the signature application.
+    // • “explicit”: the authorization process is managed by the signature  application, which collects authentication
+    // factors like PIN or One-Time Passwords (OTP).
+    // • “oauth2code”: the authorization process is managed by the remote service using an OAuth 2.0 mechanism based on
+    // authorization code as  described in Section 1.3.1 of RFC 6749 [11].
     private String authMode;
 
     // OPTIONAL
     // One of 1 | 2
-    // Specifies if the RSSP will generate for this credential a signature
-    // activation
-    // data (SAD) that contains a link to the hash to-be-signed:
+    // Specifies if the RSSP will generate for this credential a signature activation data (SAD) that contains a link to the hash to-be-signed:
     // • “1”: The hash to-be-signed is not linked to the signature activation data.
     // • “2”: The hash to-be-signed is linked to the signature activation data.
     // This value is OPTIONAL and the default value is “1”.
-    // NOTE: As decribed in section 8.2, one difference between SCAL1 and SCAL2, as
-    // described in CEN TS 119 241-1 [i.5], is that for SCAL2, the signature
-    // activation
-    // data needs to have a link to the data to-be-signed. The value “2” only gives
-    // information on the link between the hash and the SAD, it does not give
-    // information if a full SCAL2 as described in CEN TS 119 241-1 [i.5] is
-    // implemented.
+    // NOTE: As decribed in section 8.2, one difference between SCAL1 and SCAL2, as described in CEN TS 119 241-1 [i.5],
+    // is that for SCAL2, the signature activation data needs to have a link to the data to-be-signed. The value “2” only gives
+    // information on the link between the hash and the SAD, it does not give information if a full SCAL2 as described
+    // in CEN TS 119 241-1 [i.5] is implemented.
     private String SCAL;
 
     private PIN PIN;
@@ -71,12 +61,10 @@ public class CSCCredentialsInfoResponse {
     private OTP OTP;
 
     // REQUIRED
-    // Must be 1 or greater 1 A number equal or higher to 1 representing the maximum
-    // number of signatures that can be created with this credential with a single
-    // authorization request (e.g. by calling credentials/signHash method, as
-    // defined in section 11.9, once with multiple hash values or calling it
-    // multiple times). The value of numSignatures specified in the authorization
-    // request SHALL NOT exceed the value of this value.
+    // Must be 1 or greater 1 A number equal or higher to 1 representing the maximum number of signatures that can be
+    // created with this credential with a single authorization request (e.g. by calling credentials/signHash method, as
+    // defined in section 11.9, once with multiple hash values or calling it multiple times). The value of numSignatures
+    // specified in the authorization request SHALL NOT exceed the value of this value.
     private long multisign;
 
     // OPTIONAL
@@ -162,8 +150,7 @@ public class CSCCredentialsInfoResponse {
         // The status of the signing key of the credential:
         // • “enabled”: the signing key is enabled and can be used for signing.
         // • “disabled”: the signing key is disabled and cannot be used for signing.
-        // This MAY occur when the owner has disabled it or when the RSSP has detected
-        // that the associated certificate is expired or revoked.
+        // This MAY occur when the owner has disabled it or when the RSSP has detected that the associated certificate is expired or revoked.
         private String status;
 
         // REQUIRED

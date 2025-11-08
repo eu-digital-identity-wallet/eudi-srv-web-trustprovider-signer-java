@@ -22,8 +22,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import eu.europa.ec.eudi.signer.rssp.common.config.DataSourceConfig;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +32,7 @@ public class LoggerUtil {
     private final DataSourceConfig dataSourceConfig;
 
     public static String desc = "";
-    private static final Logger logger = LogManager.getLogger(LoggerUtil.class);
+    private static final Logger logger = LoggerFactory.getLogger(LoggerUtil.class);
 
     public LoggerUtil(@Autowired DataSourceConfig dataSourceConfig){
         this.dataSourceConfig = dataSourceConfig;
@@ -53,7 +53,7 @@ public class LoggerUtil {
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
-            logger.error(e);
+            logger.error(String.valueOf(e));
         }
     }
 }

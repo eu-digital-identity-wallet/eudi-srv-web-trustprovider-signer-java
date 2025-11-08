@@ -5,6 +5,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
+import eu.europa.ec.eudi.signer.rssp.common.config.TrustedIssuersCertificatesProperties;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Assert;
@@ -18,7 +19,6 @@ import com.upokecenter.cbor.CBOREncodeOptions;
 import com.upokecenter.cbor.CBORObject;
 
 import eu.europa.ec.eudi.signer.rssp.common.error.VerifiablePresentationVerificationException;
-import eu.europa.ec.eudi.signer.rssp.ejbca.EJBCAService;
 import id.walt.mdoc.doc.MDoc;
 
 @SpringBootTest
@@ -26,7 +26,7 @@ import id.walt.mdoc.doc.MDoc;
 public class VPValidatorTest {
 
     @Autowired
-    private EJBCAService ejbcaService;
+    private TrustedIssuersCertificatesProperties trustedIssuersCertificatesProperties;
 
     private JSONObject setVPTokenInString(String vp_token_cbor_hex, String presentation_definition_id,
             String presentation_definition_input_descriptors_id) throws JSONException {
@@ -49,7 +49,7 @@ public class VPValidatorTest {
             String presentation_definition_id = "32f54163-7166-48f1-93d8-ff217bdb0653";
             String presentation_definition_input_descriptors_id = "eudi_pid";
             JSONObject vp_json_object = setVPTokenInString(vp_from_verifier, presentation_definition_id, presentation_definition_input_descriptors_id);
-            vp_validator = new VPValidator(vp_json_object, this.ejbcaService);
+            vp_validator = new VPValidator(vp_json_object, this.trustedIssuersCertificatesProperties);
         } catch (Exception e) {
             Assert.assertNull(e);
         }
@@ -80,7 +80,7 @@ public class VPValidatorTest {
 
             JSONObject vp_json_object = setVPTokenInString(vp_from_verifier, actual_presentation_definition_id,
                     actual_presentation_definition_input_descriptors_id);
-            vp_validator = new VPValidator(vp_json_object, this.ejbcaService);
+            vp_validator = new VPValidator(vp_json_object, this.trustedIssuersCertificatesProperties);
         } catch (Exception e) {
             Assert.assertNull(e);
         }
@@ -108,7 +108,7 @@ public class VPValidatorTest {
 
             JSONObject vp_json_object = setVPTokenInString(vp_from_verifier, actual_presentation_definition_id,
                     actual_presentation_definition_input_descriptors_id);
-            vp_validator = new VPValidator(vp_json_object, this.ejbcaService);
+            vp_validator = new VPValidator(vp_json_object, this.trustedIssuersCertificatesProperties);
         } catch (Exception e) {
             Assert.assertNull(e);
         }
@@ -147,7 +147,7 @@ public class VPValidatorTest {
 
             JSONObject vp_json_object = setVPTokenInString(vp_token, presentation_definition_id,
                     presentation_definition_input_descriptors_id);
-            vp_validator = new VPValidator(vp_json_object, this.ejbcaService);
+            vp_validator = new VPValidator(vp_json_object, this.trustedIssuersCertificatesProperties);
         } catch (Exception e) {
             Assert.assertNull(e);
         }
@@ -219,7 +219,7 @@ public class VPValidatorTest {
 
             JSONObject vp_json_object = setVPTokenInString(vp_token, presentation_definition_id,
                     presentation_definition_input_descriptors_id);
-            vp_validator = new VPValidator(vp_json_object, this.ejbcaService);
+            vp_validator = new VPValidator(vp_json_object, this.trustedIssuersCertificatesProperties);
         } catch (Exception e) {
             Assert.assertNull(e);
         }
@@ -256,7 +256,7 @@ public class VPValidatorTest {
 
             JSONObject vp_json_object = setVPTokenInString(vp_token, presentation_definition_id,
                     presentation_definition_input_descriptors_id);
-            vp_validator = new VPValidator(vp_json_object, this.ejbcaService);
+            vp_validator = new VPValidator(vp_json_object, this.trustedIssuersCertificatesProperties);
         } catch (Exception e) {
             Assert.assertNull(e);
         }
@@ -318,7 +318,7 @@ public class VPValidatorTest {
             String presentation_definition_input_descriptors_id = "eudi_pid";
             JSONObject vp_json_object = setVPTokenInString(vp_token, presentation_definition_id,
                     presentation_definition_input_descriptors_id);
-            vp_validator = new VPValidator(vp_json_object, this.ejbcaService);
+            vp_validator = new VPValidator(vp_json_object, this.trustedIssuersCertificatesProperties);
         } catch (Exception e) {
             Assert.assertNull(e);
         }
@@ -365,7 +365,7 @@ public class VPValidatorTest {
 
             JSONObject vp_json_object = setVPTokenInString(vp_token, presentation_definition_id,
                     presentation_definition_input_descriptors_id);
-            vp_validator = new VPValidator(vp_json_object, this.ejbcaService);
+            vp_validator = new VPValidator(vp_json_object, this.trustedIssuersCertificatesProperties);
         } catch (Exception e) {
             Assert.assertNull(e);
         }

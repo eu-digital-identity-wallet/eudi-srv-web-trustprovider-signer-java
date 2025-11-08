@@ -14,14 +14,15 @@
  limitations under the License.
  */
 
-package eu.europa.ec.eudi.signer.rssp.crypto;
+package eu.europa.ec.eudi.signer.rssp.crypto.certificates;
 
-import eu.europa.ec.eudi.signer.rssp.common.config.CSCProperties;
+import eu.europa.ec.eudi.signer.rssp.common.error.ApiException;
+import eu.europa.ec.eudi.signer.rssp.common.error.SignerError;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.*;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
-
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -30,10 +31,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 public class PemConverter {
-
     public PemConverter() {
-        // Make sure the BC Provider is available
-        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+        Security.addProvider(new BouncyCastleProvider());
     }
 
     public String certificateToString(X509Certificate certificate) throws IOException {
@@ -49,12 +48,15 @@ public class PemConverter {
         }
     }
 
-    public X509Certificate stringToCertificate(String certificateString) throws IOException, CertificateException {
+    public X509Certificate stringToCertificate(String certificateString) throws ApiException {
         try (StringReader stringReader = new StringReader(certificateString);
                 PEMParser pemParser = new PEMParser(stringReader)) {
             Object object = pemParser.readObject();
             return new JcaX509CertificateConverter()
                     .getCertificate((X509CertificateHolder) object);
+        }
+        catch (IOException | CertificateException e){
+            throw new ApiException(SignerError.FailedUnmarshallingPEM, e);
         }
     }
 }

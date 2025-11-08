@@ -16,16 +16,16 @@
 
 package eu.europa.ec.eudi.signer.rssp;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
 import java.io.File;
 import java.util.Date;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 @Component
 public class RemovePDFsLifecycle implements SmartLifecycle {
-    private static final Logger logger = LogManager.getLogger(RemovePDFsLifecycle.class);
+    private static final Logger logger = LoggerFactory.getLogger(RemovePDFsLifecycle.class);
 
     private Thread removePDFsThread;
     private boolean running = false;

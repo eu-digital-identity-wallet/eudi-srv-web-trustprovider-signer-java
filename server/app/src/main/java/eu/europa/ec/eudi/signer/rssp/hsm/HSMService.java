@@ -19,31 +19,22 @@
 
 package eu.europa.ec.eudi.signer.rssp.hsm;
 
-import java.security.KeyFactory;
-import java.security.interfaces.RSAPublicKey;
-import java.security.spec.X509EncodedKeySpec;
 import org.pkcs11.jacknji11.*;
-import org.springframework.stereotype.Component;
 
-@Component
 public class HSMService {
-
     private byte[] secretKey;
     private HSMInformation hsmInfo;
 
     public HSMService() {
-
-        // Load test_slot from global variable
         long slot = 0;
         String testSlotEnv = System.getenv("JACKNJI11_TEST_TESTSLOT");
-        if (testSlotEnv != null && testSlotEnv.length() > 0) {
+        if (testSlotEnv != null && !testSlotEnv.isEmpty()) {
             slot = Long.parseLong(testSlotEnv);
         }
 
-        // Load user_pin from global variable
         byte[] pin = "userpin".getBytes();
         String userPinEnv = System.getenv("JACKNJI11_TEST_USER_PIN");
-        if (userPinEnv != null && userPinEnv.length() > 0) {
+        if (userPinEnv != null && !userPinEnv.isEmpty()) {
             pin = userPinEnv.getBytes();
         }
 
@@ -51,7 +42,7 @@ public class HSMService {
         CE.Initialize();
     }
 
-    // Creates a new Secret Key that will be use for the operation of wrap and
+    // Creates a new Secret Key that will be used for the operation of wrap and
     // unwrap:
     public byte[] initSecretKey() throws Exception {
         LongRef sessionRef = this.hsmInfo.getSession();
@@ -98,7 +89,7 @@ public class HSMService {
     }
 
     // loads the secret key from the bytes for the current session
-    public long loadSecretKey(long session, byte[] secretKeyBytes) throws Exception {
+    public long loadSecretKey(long session, byte[] secretKeyBytes) {
         CKA[] secretTempl = new CKA[] {
                 new CKA(CKA.CLASS, CKO.SECRET_KEY),
                 new CKA(CKA.KEY_TYPE, CKK.AES),
@@ -111,8 +102,7 @@ public class HSMService {
                 new CKA(CKA.UNWRAP, true),
                 new CKA(CKA.EXTRACTABLE, true)
         };
-        long obj = CE.CreateObject(session, secretTempl);
-        return obj;
+		return CE.CreateObject(session, secretTempl);
     }
 
     /**
@@ -161,8 +151,7 @@ public class HSMService {
         return keyPair;
     }
 
-    public long UnwrapKey(long session, long secretKey, byte[] wrappedKey) {
-
+    public long unwrapKey(long session, long secretKey, byte[] wrappedKey) {
         CKA[] secTemplUnwrap = new CKA[] {
                 new CKA(CKA.CLASS, CKO.PRIVATE_KEY),
                 new CKA(CKA.KEY_TYPE, CKK.RSA),
@@ -184,7 +173,7 @@ public class HSMService {
         long secretKeyObj = loadSecretKey(session, this.secretKey);
 
         // Unwrap private key
-        long privateKey = UnwrapKey(session, secretKeyObj, wrappedPrivateKey);
+        long privateKey = unwrapKey(session, secretKeyObj, wrappedPrivateKey);
 
         // Sign bytes
         CE.SignInit(session, new CKM(CKM.SHA256_RSA_PKCS), privateKey);
@@ -194,39 +183,4 @@ public class HSMService {
         this.hsmInfo.releaseSession(sessionRef);
         return signed;
     }
-
-    public long SetAttributePublicKey(long session, byte[] publicKey) throws Exception {
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        X509EncodedKeySpec pKeySpec = new X509EncodedKeySpec(publicKey);
-        RSAPublicKey pk = (RSAPublicKey) keyFactory.generatePublic(pKeySpec);
-
-        CKA[] pubTempl = new CKA[] {
-                new CKA(CKA.CLASS, CKO.PUBLIC_KEY),
-                new CKA(CKA.KEY_TYPE, CKK.RSA),
-                new CKA(CKA.MODULUS, pk.getModulus().toByteArray()),
-                new CKA(CKA.PUBLIC_EXPONENT, pk.getModulus().toByteArray()),
-                new CKA(CKA.VERIFY, true),
-                new CKA(CKA.TOKEN, true),
-                new CKA(CKA.LABEL, "labelrsa-publicloaded"),
-                new CKA(CKA.ID, "labelrsa-publicloaded")
-        };
-        return CE.CreateObject(session, pubTempl);
-    }
-
-    public void VerifySignature(byte[] DTBSR, byte[] signature, byte[] publicKey) throws Exception {
-        // init session
-        LongRef sessionRef = this.hsmInfo.getSession();
-        long session = sessionRef.value();
-
-        // Get Public Key Parameters
-        long publicKeyValue = 0;
-        publicKeyValue = SetAttributePublicKey(session, publicKey);
-
-        // Verify Signature
-        CE.VerifyInit(session, new CKM(CKM.SHA256_RSA_PKCS), publicKeyValue);
-        CE.Verify(session, DTBSR, signature);
-
-        this.hsmInfo.CloseSession(sessionRef);
-    }
-
 }

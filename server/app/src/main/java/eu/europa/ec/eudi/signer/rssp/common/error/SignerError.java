@@ -19,13 +19,13 @@ package eu.europa.ec.eudi.signer.rssp.common.error;
 import eu.europa.ec.eudi.signer.common.ApiError;
 
 /**
- * Enum holding all of the Signer error codes and descriptions
+ * Enum holding all the Signer error codes and descriptions
  */
 public enum SignerError implements ApiError {
         UserNotFound("user_not_found", "User not found", 404), // 404 not found
 
         CredentialAliasAlreadyExists("credential_alias_already_exists",
-                        "The credential alias chosen is not valid. The aliases must be unique.", 409), // 409 conflit
+                        "The credential alias chosen is not valid. The aliases must be unique.", 400), // 404 conflit
 
         CredentialNotFound("credential_not_found",
                         "No credential was found matching the alias given.", 404), // 404 not found
@@ -139,6 +139,6 @@ public enum SignerError implements ApiError {
          * @return a formatted message
          */
         public String getFormattedMessage() {
-                return "[ " + this.code + " ] " + this.desc;
+                return "[" + this.code + "] " + this.desc;
         }
 }

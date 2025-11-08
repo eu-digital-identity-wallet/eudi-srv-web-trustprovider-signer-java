@@ -16,11 +16,9 @@
 
 package eu.europa.ec.eudi.signer.rssp.api.services;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import eu.europa.ec.eudi.signer.rssp.api.model.LoggerUtil;
@@ -31,6 +29,10 @@ import eu.europa.ec.eudi.signer.rssp.entities.Credential;
 import eu.europa.ec.eudi.signer.rssp.crypto.CryptoService;
 import eu.europa.ec.eudi.signer.rssp.repository.CredentialRepository;
 
+import java.security.KeyFactory;
+import java.security.cert.X509Certificate;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.X509EncodedKeySpec;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +40,7 @@ import java.util.Optional;
 
 @Service
 public class CredentialService {
-	private static final Logger logger = LogManager.getLogger(CredentialService.class);
+	private static final Logger logger = LoggerFactory.getLogger(CredentialService.class);
 
 	private final CredentialRepository credentialRepository;
 	private final CryptoService cryptoService;
@@ -66,23 +68,30 @@ public class CredentialService {
 	 *                    determine which CA will sign the certificate
 	 * @return the credential created
 	 */
-	public Credential createCredential(String owner, String givenName, String surname, String subjectDN,
-			String alias, String countryCode) throws Exception {
+	public Credential createCredential(String owner, String givenName, String surname, String subjectDN, String alias, String countryCode) throws Exception {
 		if (this.credentialRepository.findByOwnerAndAlias(owner, alias).isPresent()) {
-			String logMessage = SignerError.CredentialAliasAlreadyExists.getCode()
-					+ " (createCredential in CredentialService.class) "
-					+ SignerError.CredentialAliasAlreadyExists.getDescription();
-			logger.error(logMessage);
+			logger.error(SignerError.CredentialAliasAlreadyExists.getFormattedMessage());
 			loggerUtil.logsUser(0, owner, 1, SignerError.CredentialAliasAlreadyExists.getDescription());
-
-			throw new ApiException(SignerError.CredentialAliasAlreadyExists,
-					"The credential alias " + alias + " chosen is not valid. The aliases must be unique.");
+			throw new ApiException(SignerError.CredentialAliasAlreadyExists, "The credential alias " + alias + " chosen is not valid. The aliases must be unique.");
 		}
 
-		Credential credential = cryptoService.createCredential(owner, givenName, surname, subjectDN, alias,
-				countryCode);
+		Credential credential = cryptoService.createCredential(owner, givenName, surname, subjectDN, countryCode);
+		credential.setAlias(alias);
 		credential.setCreatedAt(Instant.now());
 		credentialRepository.save(credential);
+
+		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+		X509EncodedKeySpec pKeySpec = new X509EncodedKeySpec(credential.getPublicKeyHSM());
+		RSAPublicKey pk = (RSAPublicKey) keyFactory.generatePublic(pKeySpec);
+		String info = "Public Key info - Algorithm: " + pk.getAlgorithm() + " " + pk.getModulus().bitLength()
+			  + " bits | Modulus: " + pk.getModulus() + " | Exponent: " + pk.getPublicExponent();
+		loggerUtil.logsUser(1, owner, 3, info);
+
+		String info2 = "Certificate Alias: " + credential.getAlias() + " | Subject DN: " + credential.getSubjectDN()
+			  + " | Issuer DN: " + credential.getIssuerDN() + " | Valid From: " + credential.getValidFrom()
+			  + " | Valid To: " + credential.getValidTo();
+		loggerUtil.logsUser(1, owner, 1, info2);
+
 		return credential;
 	}
 
@@ -96,16 +105,12 @@ public class CredentialService {
 	 */
 	public void deleteCredentials(String ownerId, String credentialAlias) {
 		Optional<Credential> credential = credentialRepository.findByOwnerAndAlias(ownerId, credentialAlias);
-
 		if (credential.isEmpty()) {
-			String logMessage = SignerError.CredentialNotFound.getCode()
-					+ " (deleteCredential in CredentialService.class) "
-					+ SignerError.CredentialNotFound.getDescription();
-			logger.error(logMessage);
+			logger.error(SignerError.CredentialNotFound.getFormattedMessage());
 			loggerUtil.logsUser(0, ownerId, 2, "");
-			throw new ApiException(SignerError.CredentialNotFound,
-					"Attempted to delete the credential " + credentialAlias + ", that does not exist.");
+			throw new ApiException(SignerError.CredentialNotFound, "Attempted to delete the credential " + credentialAlias + ", that does not exist.");
 		}
+
 		String info = "Certificate Alias: " + credential.get().getAlias()
 				+ " | Subject DN: " + credential.get().getSubjectDN()
 				+ " | Issuer DN: " + credential.get().getIssuerDN()
@@ -115,25 +120,26 @@ public class CredentialService {
 		loggerUtil.logsUser(1, ownerId, 2, info);
 	}
 
-	// ...............................
-
 	public List<CredentialInfo> listCredentials(String ownerId) {
 		final List<Credential> credentialsList = credentialRepository.findByOwner(ownerId);
 		List<CredentialInfo> credentialsInfo = new ArrayList<>();
 		for (Credential ac : credentialsList) {
-			CredentialInfo ci = new CredentialInfo(ac.getAlias(), ac.getIssuerDN(), ac.getSubjectDN(),
-					ac.getValidFrom(), ac.getValidTo());
+			CredentialInfo ci = new CredentialInfo(ac.getAlias(), ac.getIssuerDN(), ac.getSubjectDN(), ac.getValidFrom(), ac.getValidTo());
 			credentialsInfo.add(ci);
 		}
 		return credentialsInfo;
 	}
 
-	public Page<Credential> getCredentialsByOwner(String owner, Pageable pageable) {
-		return credentialRepository.findByOwner(owner, pageable);
-	}
-
 	public Optional<Credential> getCredentialWithAlias(String owner, String alias) {
 		return credentialRepository.findByOwnerAndAlias(owner, alias);
+	}
+
+	public X509Certificate pemToX509(String pemCertificate){
+		return cryptoService.pemToX509Certificate(pemCertificate);
+	}
+
+	public boolean isCertificateExpired(X509Certificate x509Certificate){
+		return cryptoService.isCertificateExpired(x509Certificate);
 	}
 
 }

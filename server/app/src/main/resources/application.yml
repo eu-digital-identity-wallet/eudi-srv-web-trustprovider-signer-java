@@ -23,7 +23,6 @@ spring:
         password: ${SPRING_DATASOURCE_PASSWORD}
         url: jdbc:mysql://${SPRING_DATASOURCE_DB_URL}/${SPRING_DATASOURCE_DB_NAME}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false
         driver-class-name: com.mysql.cj.jdbc.Driver
-
     jpa:
         show-sql: true
         hibernate:
@@ -41,6 +40,11 @@ assina:
     lifetimeMinutes: 600
     secret: ${AUTH_JWT_TOKEN_SECRET}
 
+sad:
+    type: SAD
+    lifetimeMinutes: 5
+    secret: ${AUTH_SAD_TOKEN_SECRET}
+
 verifier:
     url: https://verifier-backend.eudiw.dev/ui/presentations
     address: verifier-backend.eudiw.dev
@@ -49,16 +53,7 @@ verifier:
 trusted-issuers:
     folder: issuersCertificates
 
-sad:
-    type: SAD
-    lifetimeMinutes: 5
-    secret: ${AUTH_SAD_TOKEN_SECRET}
-
 csc:
-    crypto:
-        keyAlgorithm: RSA
-        keySize: 2048
-        signatureAlgorithm: SHA256WithRSA
     api:
         pageSize: 20 # if a client does not specify maxResults this is the default page size
         maxPageSize: 100 # even if a client does specify maxResults we limit it to this to avoid DOS
@@ -77,35 +72,49 @@ auth:
     dbEncryptionPassphrase: ${AUTH_DB_ENCRYPTION_PASSPHRASE}
     dbEncryptionSalt: ${AUTH_DB_ENCRYPTION_SALT}
 
-ejbca:
-    # Values required to access the EJBCA:
-    cahost: ${EJBCA_HOST}
-    clientP12ArchiveFilepath: ${EJBCA_CLIENT_P12_FILEPATH}
-    clientP12ArchivePassword: ${EJBCA_CLIENT_P12_PASSWORD}
-    managementCA: ${EJBCA_MANAGEMENT_CA}
-    # Endpoint:
-    endpoint: /certificate/pkcs10enroll
-    # Values required by the endpoint "/pkcs10enroll":
-    certificateProfileName: ${EJBCA_CERTIFICATE_PROFILE_NAME}
-    endEntityProfileName: ${EJBCA_END_ENTITY_PROFILE_NAME}
-    username: ${EJBCA_USERNAME}
-    password: ${EJBCA_PASSWORD}
-    includeChain: true
-    countries:
-        - country: CZ
-          certificateAuthorityName: PID Issuer CA - CZ 02
-        - country: EE
-          certificateAuthorityName: PID Issuer CA - EE 02
-        - country: EU
-          certificateAuthorityName: PID Issuer CA - EU 02
-        - country: LU
-          certificateAuthorityName: PID Issuer CA - LU 02
-        - country: NL
-          certificateAuthorityName: PID Issuer CA - NL 02
-        - country: PT
-          certificateAuthorityName: PID Issuer CA - PT 02
-        - country: default
-          certificateAuthorityName: PID Issuer CA - UT 02
+keys:
+    use-hsm: ${KEYS_USE_HSM}
+    keyAlgorithm: RSA
+    keySize: 2048
+    signatureAlgorithm: SHA256withRSA
+
+certificates:
+    use-ejbca: ${CERTIFICATES_USE_EJBCA}
+    ca-subject:
+        certificate-file: ${CERTIFICATES_CA_SUBJECT_CERTIFICATE_FILE}
+        key-file: ${CERTIFICATES_CA_SUBJECT_KEY_FILE}
+        common-name: ${CERTIFICATES_CA_SUBJECT_COMMON_NAME}
+        organization: ${CERTIFICATES_CA_SUBJECT_ORGANIZATION}
+        country: ${CERTIFICATES_CA_SUBJECT_COUNTRY}
+    ejbca:
+        # Values required to access the EJBCA:
+        cahost: ${EJBCA_HOST}
+        clientP12ArchiveFilepath: ${EJBCA_CLIENT_P12_FILEPATH}
+        clientP12ArchivePassword: ${EJBCA_CLIENT_P12_PASSWORD}
+        managementCA: ${EJBCA_MANAGEMENT_CA}
+        # Endpoint:
+        endpoint: /certificate/pkcs10enroll
+        # Values required by the endpoint "/pkcs10enroll":
+        certificateProfileName: ${EJBCA_CERTIFICATE_PROFILE_NAME}
+        endEntityProfileName: ${EJBCA_END_ENTITY_PROFILE_NAME}
+        username: ${EJBCA_USERNAME}
+        password: ${EJBCA_PASSWORD}
+        includeChain: true
+        countries:
+            - country: CZ
+              certificateAuthorityName: PID Issuer CA - CZ 02
+            - country: EE
+              certificateAuthorityName: PID Issuer CA - EE 02
+            - country: EU
+              certificateAuthorityName: PID Issuer CA - EU 02
+            - country: LU
+              certificateAuthorityName: PID Issuer CA - LU 02
+            - country: NL
+              certificateAuthorityName: PID Issuer CA - NL 02
+            - country: PT
+              certificateAuthorityName: PID Issuer CA - PT 02
+            - country: default
+              certificateAuthorityName: PID Issuer CA - UT 02
 
 logging:
     level:

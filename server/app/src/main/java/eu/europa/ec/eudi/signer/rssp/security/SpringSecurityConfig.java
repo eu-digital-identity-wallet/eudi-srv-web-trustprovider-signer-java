@@ -16,7 +16,7 @@
 
 package eu.europa.ec.eudi.signer.rssp.security;
 
-import static eu.europa.ec.eudi.signer.rssp.common.config.SignerConstants.CSC_URL_ROOT;
+import static eu.europa.ec.eudi.signer.common.SignerConstants.CSC_URL_ROOT;
 
 import eu.europa.ec.eudi.signer.rssp.common.config.JwtConfigProperties;
 import eu.europa.ec.eudi.signer.rssp.repository.UserRepository;
@@ -54,17 +54,14 @@ public class SpringSecurityConfig {
               )
               .exceptionHandling(exceptions ->
                     exceptions.authenticationEntryPoint((request, response, exception) -> {
-                        logger.error("Responding with unauthorized error. Message - {}", exception, exception);
+                        logger.error("Responding with unauthorized error. Message - {}", exception.getMessage(), exception);
                         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                         response.getWriter().write("Unauthorized");
                     })
               )
               .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/").permitAll()
-                    .requestMatchers("/error").permitAll()
-                    .requestMatchers("/favicon.ico").permitAll()
-                    .requestMatchers("/static/**").permitAll()
-                    .requestMatchers("/resources/**").permitAll()
+                    .requestMatchers("/swagger-ui/**").permitAll()
+                    .requestMatchers("/v3/api-docs/**").permitAll()
                     .requestMatchers("/auth/**").permitAll()
                     .requestMatchers(CSC_URL_ROOT + "/info").permitAll()
                     .anyRequest().authenticated()

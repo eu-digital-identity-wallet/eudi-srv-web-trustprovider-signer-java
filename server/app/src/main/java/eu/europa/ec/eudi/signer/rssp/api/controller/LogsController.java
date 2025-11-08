@@ -20,8 +20,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import eu.europa.ec.eudi.signer.rssp.common.config.DataSourceConfig;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,7 +39,7 @@ import eu.europa.ec.eudi.signer.rssp.security.UserPrincipal;
 @RestController
 @RequestMapping(value = "/logs")
 public class LogsController {
-    private static final Logger logger = LogManager.getLogger(LogsController.class);
+    private static final Logger logger = LoggerFactory.getLogger(LogsController.class);
     private final UserService userService;
     private final LogsUserRepository repository;
     private final Map<Integer, String> events;

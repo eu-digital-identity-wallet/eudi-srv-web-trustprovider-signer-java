@@ -17,63 +17,47 @@
 package eu.europa.ec.eudi.signer.csc.payload;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
 /**
- * Body for request of credentials/info - information about a specific
- * credential record
- * of credential IDs
+ * Body for request of credentials/info - information about a specific  credential record of credential IDs
  * From section 11.5 of the CSC API V_1.0.4.0 spec
  */
 public class CSCCredentialsInfoRequest {
-
-    public CSCCredentialsInfoRequest() {
-    }
-
     // REQUIRED
-    // The unique identifier associated to the credential.
-    @NotBlank(message = "MissingCredentialId")
-    // the alias
+    // The unique identifier associated to the credential (the alias).
+    @NotBlank(message = "Missing CredentialID")
     private String credentialID;
 
     // OPTIONAL
     // none | single | chain
-    // Specifies which certificates from the certificate chain shall be returned in
-    // certs/certificates.
+    // Specifies which certificates from the certificate chain shall be returned in certs/certificates.
     // • “none”: No certificate SHALL be returned.
     // • “single”: Only the end entity certificate SHALL be returned.
     // • “chain”: The full certificate chain SHALL be returned.
-    // The default value is “single”, so if the parameter is omitted then the method
-    // will
-    // only return the end entity certificate.
+    // The default value is “single”, so if the parameter is omitted then the method will only return the end entity certificate.
+    @Pattern(regexp = "^(none|single|chain)$", message = "Invalid parameter certificates")
     private String certificates;
 
     // OPTIONAL
-    // Request to return various parameters containing information from the end
-    // entity
-    // certificate.
-    // This is useful in case the signature application wants to retrieve some
-    // details
-    // of the certificate without having to decode it first.
-    // The default value is “false”, so if the parameter is omitted then the
-    // information will
-    // not be returned.
+    // Request to return various parameters containing information from the end entity certificate.
+    // This is useful in case the signature application wants to retrieve some details of the certificate without having to decode it first.
+    // The default value is “false”, so if the parameter is omitted then the  information will not be returned.
     private boolean certInfo = false;
 
     // OPTIONAL
-    // Request to return various parameters containing information on the
-    // authorization mechanisms supported by this credential (PIN and OTP groups).
-    // The default value is “false”, so if the parameter is omitted then the
-    // information will not be returned.
+    // Request to return various parameters containing information on the authorization mechanisms supported by this credential (PIN and OTP groups).
+    // The default value is “false”, so if the parameter is omitted then the information will not be returned.
     private boolean authInfo = false;
 
     // OPTIONAL
-    // String The clientData as defined in the Input parameter table in section
-    // 8.3.2.
-    private String clientData;
+    // The lang as defined in the Input parameter table in section 11.1.
+    @Pattern(regexp = "^[a-zA-Z]{2}(-[a-zA-Z]{2})?$", message = "Invalid language code")
+    private String lang;
 
     // OPTIONAL
-    // The lang as defined in the Input parameter table in section 11.1.
-    private String lang;
+    // String The clientData as defined in the Input parameter table in section 8.3.2.
+    private String clientData;
 
     public String getLang() {
         return lang;

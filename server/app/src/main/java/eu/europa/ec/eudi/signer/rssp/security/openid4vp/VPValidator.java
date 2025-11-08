@@ -21,15 +21,9 @@ import java.io.InputStream;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.IntStream;
-
+import eu.europa.ec.eudi.signer.rssp.common.config.TrustedIssuersCertificatesProperties;
 import eu.europa.ec.eudi.signer.rssp.common.error.SignerError;
 import eu.europa.ec.eudi.signer.rssp.common.error.VerifiablePresentationVerificationException;
-import eu.europa.ec.eudi.signer.rssp.ejbca.EJBCAService;
-
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -52,12 +46,12 @@ public class VPValidator {
     private static final Logger log = LoggerFactory.getLogger(VPValidator.class);
     private final JSONObject verifiablePresentation;
     private final String keyID;
-    private final EJBCAService ejbcaService;
+    private final TrustedIssuersCertificatesProperties trustedIssuersCertificates;
 
-    public VPValidator(JSONObject vp, EJBCAService ejbcaService) {
+    public VPValidator(JSONObject vp,  TrustedIssuersCertificatesProperties trustedIssuersCertificates) {
         this.verifiablePresentation = vp;
         this.keyID = "keyID";
-        this.ejbcaService = ejbcaService;
+        this.trustedIssuersCertificates = trustedIssuersCertificates;
     }
 
     /**
@@ -83,7 +77,7 @@ public class VPValidator {
         InputStream in = new ByteArrayInputStream(Objects.requireNonNull(issuerAuth.getX5Chain()));
         X509Certificate cert = (X509Certificate) factory.generateCertificate(in);
 
-        X509Certificate issuerCertificate = this.ejbcaService.searchForIssuerCertificate(cert.getIssuerX500Principal());
+        X509Certificate issuerCertificate = this.trustedIssuersCertificates.getTrustIssuersCertificates().get(cert.getIssuerX500Principal().toString());
         if (issuerCertificate == null) {
 			log.error("Issuer ({}) of the VPToken is not trustworthy.", cert.getIssuerX500Principal().getName());
             throw new Exception("Issuer (" + cert.getIssuerX500Principal().getName() + ") of the VPToken is not trustworthy.");

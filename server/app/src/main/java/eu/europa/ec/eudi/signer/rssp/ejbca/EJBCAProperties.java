@@ -20,32 +20,17 @@ import java.util.List;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "ejbca")
 public class EJBCAProperties {
-
-    @NotNull
     private String caHost;
     private String clientP12ArchiveFilepath;
     private String clientP12ArchivePassword;
     private String managementCA;
-
-    @NotNull
     private String endpoint;
-
-    @NotNull
     private String certificateProfileName;
-
-    @NotNull
     private String endEntityProfileName;
-
-    @NotNull
     private String username;
-
-    @NotNull
     private String password;
-
     private boolean includeChain;
-
     private List<CountryConfig> countries;
 
     public void setCountries(List<CountryConfig> countries) {

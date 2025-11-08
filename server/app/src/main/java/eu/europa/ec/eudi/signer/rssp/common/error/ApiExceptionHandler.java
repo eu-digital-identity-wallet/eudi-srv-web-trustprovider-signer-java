@@ -16,6 +16,7 @@
 
 package eu.europa.ec.eudi.signer.rssp.common.error;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -56,10 +57,30 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 	private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
 
 	@ExceptionHandler(value = { ApiException.class })
-	protected ResponseEntity<?> handleApiException(RuntimeException ae, WebRequest request) {
-		ApiError apiError = ((ApiException) ae).getApiError();
-		String message = ae.getMessage();
-		return apiErrorToResponse(apiError, message, ae, request);
+	protected ResponseEntity<?> handleApiException(RuntimeException exception, WebRequest request) {
+		ApiError apiError = ((ApiException) exception).getApiError();
+		String message = exception.getMessage();
+		return apiErrorToResponse(apiError, message, exception, request);
+	}
+
+	private ResponseEntity<Object> apiErrorToResponse(ApiError error, String message, Exception ex, WebRequest request) {
+		ApiErrorResponse response = new ApiErrorResponse(error.getCode(), error.getDescription());
+		HttpStatus httpStatus = HttpStatus.valueOf(error.getHttpCode());
+		// log a warning for all messages
+		log.warn("Responding to error: {} with status {}. Error description {}; message: {}", error.getCode(), error.getHttpCode(), error.getDescription(), message);
+		return handleExceptionInternal(ex, response, new HttpHeaders(), httpStatus, request);
+	}
+
+	@Override
+	@Nullable
+	protected ResponseEntity<Object> handleExceptionInternal(@NotNull Exception exception, @Nullable Object body, @NotNull HttpHeaders headers, @NotNull HttpStatusCode status, @NotNull WebRequest request) {
+		if (exception instanceof ApiException) {
+			log.debug("Handled exception in TrustProviderSigner application", exception);
+			log.warn("Handled Error: " + exception.getMessage(), (Object[]) ((ApiException) exception).getMessageParams());
+		} else {
+			log.error("Unhandled exception in TrustProviderSigner application", exception);
+		}
+		return super.handleExceptionInternal(exception, body, headers, status, request);
 	}
 
 	/**
@@ -73,7 +94,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 	 * (according to the CSC spec)
 	 */
 	@Override
-	protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+	protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, @NotNull HttpHeaders headers, @NotNull HttpStatusCode status, @NotNull WebRequest request) {
 		ApiError apiError;
 		if (ex.hasFieldErrors()) {
 			FieldError fieldError = ex.getFieldError();
@@ -98,26 +119,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 		return apiErrorToResponse(apiError, ex.getMessage(), ex, request);
 	}
 
-	@Override
-	@Nullable
-	protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-		if (ex instanceof ApiException) {
-			log.debug("Handled exception in TrustProviderSigner application", ex);
-			log.warn("Handled Error: " + ex.getMessage(), (Object[]) ((ApiException) ex).getMessageParams());
-		} else {
-			log.error("Unhandled exception in TrustProviderSigner application", ex);
-		}
-		return super.handleExceptionInternal(ex, body, headers, status, request);
-	}
 
-	private ResponseEntity<Object> apiErrorToResponse(
-			ApiError error, String message, Exception ex, WebRequest request) {
-		ApiErrorResponse response = new ApiErrorResponse(error.getCode(), error.getDescription());
-		HttpStatus httpStatus = HttpStatus.valueOf(error.getHttpCode());
-		// log a warning for all messages
-		log.warn("Responding to error: {} with status {}. Error description {}; message: {}",
-				error.getCode(), error.getHttpCode(), error.getDescription(), message);
 
-		return handleExceptionInternal(ex, response, new HttpHeaders(), httpStatus, request);
-	}
+
 }

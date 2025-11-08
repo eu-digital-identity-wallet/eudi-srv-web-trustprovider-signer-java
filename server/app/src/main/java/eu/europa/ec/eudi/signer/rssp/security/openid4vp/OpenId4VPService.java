@@ -22,8 +22,9 @@ import java.util.Map;
 import java.util.List;
 import java.util.Optional;
 import java.util.Map.Entry;
-
+import eu.europa.ec.eudi.signer.csc.payload.RedirectLinkResponse;
 import eu.europa.ec.eudi.signer.rssp.common.config.JwtConfigProperties;
+import eu.europa.ec.eudi.signer.rssp.common.config.TrustedIssuersCertificatesProperties;
 import eu.europa.ec.eudi.signer.rssp.security.UserPrincipal;
 import eu.europa.ec.eudi.signer.rssp.security.jwt.JwtProvider;
 import eu.europa.ec.eudi.signer.rssp.security.jwt.JwtToken;
@@ -42,7 +43,6 @@ import eu.europa.ec.eudi.signer.rssp.api.payload.AuthResponse;
 import eu.europa.ec.eudi.signer.rssp.common.error.SignerError;
 import eu.europa.ec.eudi.signer.rssp.common.error.VPTokenInvalid;
 import eu.europa.ec.eudi.signer.rssp.common.error.VerifiablePresentationVerificationException;
-import eu.europa.ec.eudi.signer.rssp.ejbca.EJBCAService;
 import eu.europa.ec.eudi.signer.rssp.entities.User;
 import eu.europa.ec.eudi.signer.rssp.repository.UserRepository;
 import id.walt.mdoc.doc.MDoc;
@@ -56,25 +56,68 @@ public class OpenId4VPService {
     private final UserRepository repository;
     private final AuthenticationManager authenticationManager;
     private final JwtProvider jwtProvider;
-    private final EJBCAService ejbcaService;
     private final LoggerUtil loggerUtil;
+    private final TrustedIssuersCertificatesProperties trustedIssuersCertificatesProperties;
+    private final VerifierClient verifierClient;
 
     @Autowired
-    public OpenId4VPService(UserRepository repository, AuthenticationManager authenticationManager,
-                            JwtConfigProperties jwtConfigProperties, EJBCAService ejbcaService, LoggerUtil loggerUtil) {
+    public OpenId4VPService(UserRepository repository, AuthenticationManager authenticationManager, JwtConfigProperties jwtConfigProperties,
+                            LoggerUtil loggerUtil, TrustedIssuersCertificatesProperties trustedIssuersCertificates, VerifierClient verifierClient) {
         this.repository = repository;
         this.authenticationManager = authenticationManager;
         this.jwtProvider = new JwtProvider(jwtConfigProperties);
-        this.ejbcaService = ejbcaService;
+        this.trustedIssuersCertificatesProperties = trustedIssuersCertificates;
         this.loggerUtil = loggerUtil;
+        this.verifierClient = verifierClient;
     }
 
     public record UserOIDTemporaryInfo(User user, String givenName, String familyName) {
+    }
 
-        public String getFullName() {
-                return givenName + " " + familyName;
-            }
-        }
+    public RedirectLinkResponse getRedirectLink(String sanitizeCookie, String typeOperation, String serviceUrl) throws Exception {
+        RedirectLinkResponse redirectLink = this.verifierClient.initPresentationTransaction(sanitizeCookie, typeOperation, serviceUrl);
+        log.info("Retrieved the redirect link for cross device authentication.");
+        return redirectLink;
+    }
+
+    private String pollVPToken(String sessionId, String typeOperation) throws Exception {
+        String messageFromVerifier = this.verifierClient.getVPTokenFromVerifierRecursive(sessionId, typeOperation);
+        if (messageFromVerifier == null)
+            throw new Exception("Error when trying to obtain the vp_token from Verifier.");
+        log.info("VP Token retrieved recursively from Verifier: {}", messageFromVerifier);
+        return messageFromVerifier;
+    }
+
+    public AuthResponse pollVPTokenAndCreateOID4VPAuthToken(String sessionId, String typeOperation) throws Exception {
+        String messageFromVerifier = pollVPToken(sessionId, typeOperation);
+        return loadUserFromVerifierResponseAndGetJWTToken(messageFromVerifier);
+    }
+
+    public User pollVPTokenAndReturnUser(String sessionId, String typeOperation, Map<Integer, String> logsMap) throws Exception {
+        String messageFromVerifier = pollVPToken(sessionId, typeOperation);
+        return loadUserFromVerifierResponse(messageFromVerifier, logsMap);
+    }
+
+    private String getVPToken(String sessionId, String typeOperation, String code) throws Exception {
+        String messageFromVerifier = this.verifierClient.getVPTokenFromVerifier(sessionId, typeOperation, code);
+        if (messageFromVerifier == null)
+            throw new Exception("Error when trying to obtain the vp_token from Verifier.");
+        log.info("VP Token retrieved from Verifier: {}", messageFromVerifier);
+        return messageFromVerifier;
+    }
+
+    public AuthResponse getVPTokenFromVerifierAndCreateOID4VPAuthToken(String sessionId, String typeOperation, String code) throws Exception {
+        String messageFromVerifier = getVPToken(sessionId, typeOperation, code);
+        // Returns OID4VPException with a correctly formatted messages from the Error.description
+        return loadUserFromVerifierResponseAndGetJWTToken(messageFromVerifier);
+    }
+
+    public User getVPTokenFromVerifierAndReturnUser(String sessionId, String typeOperation, String code, Map<Integer, String> logsMap) throws Exception {
+        // Returns OID4VPException with a correctly formatted messages from the Error.description
+        String messageFromVerifier = getVPToken(sessionId, typeOperation, code);
+        // Returns OID4VPException with a correctly formatted messages from the Error.description
+        return loadUserFromVerifierResponse(messageFromVerifier, logsMap);
+    }
 
     /**
      * Function that allows to load the user from the response of the verifier (VP
@@ -92,7 +135,7 @@ public class OpenId4VPService {
      *                                                     validation of the vp
      *                                                     token
      */
-    public AuthResponse loadUserFromVerifierResponseAndGetJWTToken(String messageFromVerifier)
+    private AuthResponse loadUserFromVerifierResponseAndGetJWTToken(String messageFromVerifier)
             throws VerifiablePresentationVerificationException, VPTokenInvalid, NoSuchAlgorithmException, Exception {
 
         JSONObject vp;
@@ -102,7 +145,7 @@ public class OpenId4VPService {
         catch (JSONException e){
             throw new Exception("The response from the Verifier doesn't contain a correctly formatted JSON string.");
         }
-        VPValidator validator = new VPValidator(vp, this.ejbcaService);
+        VPValidator validator = new VPValidator(vp, this.trustedIssuersCertificatesProperties);
         Map<Integer, String> logsMap = new HashMap<>();
         MDoc document = validator.loadAndVerifyDocumentForVP(logsMap);
         UserOIDTemporaryInfo user = loadUserFromDocument(document);
@@ -116,12 +159,11 @@ public class OpenId4VPService {
      * 
      * @param messageFromVerifier                      the message received from the
      *                                                 verifier
-     * @param ejbcaService                             the EJBCA Service
      * @param logsMap                                  an hash map to load the logs
      *                                                 from the validator
      * @return the user loaded
      */
-    public User loadUserFromVerifierResponse(String messageFromVerifier, EJBCAService ejbcaService, Map<Integer, String> logsMap)
+    private User loadUserFromVerifierResponse(String messageFromVerifier, Map<Integer, String> logsMap)
             throws VerifiablePresentationVerificationException, VPTokenInvalid, NoSuchAlgorithmException, Exception {
 
         JSONObject responseVerifier;
@@ -132,12 +174,12 @@ public class OpenId4VPService {
             throw new Exception("The response from the Verifier doesn't contain a correctly formatted JSON string.");
         }
 
-        VPValidator validator = new VPValidator(responseVerifier, ejbcaService);
+        VPValidator validator = new VPValidator(responseVerifier, this.trustedIssuersCertificatesProperties);
         MDoc document = validator.loadAndVerifyDocumentForVP(logsMap);
         return loadUserFromDocument(document).user();
     }
 
-    public UserOIDTemporaryInfo loadUserFromDocument(MDoc document) throws VPTokenInvalid, NoSuchAlgorithmException {
+    private UserOIDTemporaryInfo loadUserFromDocument(MDoc document) throws VPTokenInvalid, NoSuchAlgorithmException {
         String docType = document.getDocType().getValue();
         List<IssuerSignedItem> l = document.getIssuerSignedItems(docType);
 
@@ -158,10 +200,7 @@ public class OpenId4VPService {
         }
 
         if (familyName == null || givenName == null || birthDate == null || issuingCountry == null) {
-            String logMessage = SignerError.VPTokenMissingValues.getCode()
-                    + "(loadUserFromDocument in OpenId4VPService.class): "
-                    + SignerError.VPTokenMissingValues.getDescription();
-            log.error(logMessage);
+            log.error(SignerError.VPTokenMissingValues.getFormattedMessage());
             throw new VPTokenInvalid(SignerError.VPTokenMissingValues,
                     "The VP token doesn't have all the required values.");
         }
@@ -199,7 +238,7 @@ public class OpenId4VPService {
         return createToken(authentication);
     }
 
-    public String createToken(Authentication authentication) {
+    private String createToken(Authentication authentication) {
         try {
             if (authentication.getClass().equals(OpenId4VPAuthenticationToken.class)) {
                 UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();

@@ -16,6 +16,7 @@
 
 package eu.europa.ec.eudi.signer.rssp.csc.services;
 
+import eu.europa.ec.eudi.signer.rssp.crypto.CryptoSigner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -45,15 +46,15 @@ public class CSCSignaturesService {
 	private static final Logger log = LoggerFactory.getLogger(CSCSignaturesService.class);
 	private final CredentialService credentialService;
 	private final UserService userService;
-	private final CryptoService cryptoService;
+	private final CryptoSigner cryptoSigner;
 	private final CSCSADProvider sadProvider;
 	private final LoggerUtil loggerUtil;
 
 	public CSCSignaturesService(CredentialService credentialService, UserService userService,
-			CryptoService cryptoService, CSCSADProvider sadProvider, LoggerUtil loggerUtil) {
+								CryptoSigner cryptoSigner, CSCSADProvider sadProvider, LoggerUtil loggerUtil) {
 		this.credentialService = credentialService;
 		this.userService = userService;
-		this.cryptoService = cryptoService;
+		this.cryptoSigner = cryptoSigner;
 		this.sadProvider = sadProvider;
 		this.loggerUtil = loggerUtil;
 	}
@@ -100,7 +101,7 @@ public class CSCSignaturesService {
 		try {
 			List<String> signedHashes = new ArrayList<>();
 			for (String hash : signHashRequest.getHash()) {
-				String signedData = cryptoService.signWithPemCertificate(
+				String signedData = cryptoSigner.signWithPemCertificate(
 						hash,
 						credential.getCertificate(),
 						credential.getCertificateChains(),
