@@ -20,9 +20,9 @@ import eu.europa.ec.eudi.signer.rssp.common.config.KeysProperties;
 import eu.europa.ec.eudi.signer.rssp.crypto.certificates.CertificateSigningRequestGenerator;
 import eu.europa.ec.eudi.signer.rssp.crypto.certificates.CertificatesDTO;
 import eu.europa.ec.eudi.signer.rssp.crypto.certificates.ICertificateIssuer;
-import eu.europa.ec.eudi.signer.rssp.crypto.certificates.PemConverter;
 import eu.europa.ec.eudi.signer.rssp.crypto.keys.IKeysService;
 import eu.europa.ec.eudi.signer.rssp.crypto.keys.KeyPairDTO;
+import eu.europa.ec.eudi.signer.rssp.util.CertificateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,6 @@ import java.util.*;
 public class CryptoService {
     private static final Logger logger = LoggerFactory.getLogger(CryptoService.class);
     private final CertificateSigningRequestGenerator generator;
-    private final PemConverter pemConverter;
     private final LoggerUtil loggerUtil;
     private final IKeysService keysService;
     private final ICertificateIssuer certificateService;
@@ -49,7 +48,6 @@ public class CryptoService {
     public CryptoService(@Autowired KeysProperties keysProperties, @Autowired IKeysService iKeysService, @Autowired ICertificateIssuer iCertificateService, @Autowired LoggerUtil loggerUtil) {
         this.keysProperties = keysProperties;
         this.generator = new CertificateSigningRequestGenerator();
-        this.pemConverter = new PemConverter();
         this.loggerUtil = loggerUtil;
         this.keysService = iKeysService;
         this.certificateService = iCertificateService;
@@ -93,7 +91,7 @@ public class CryptoService {
         if (chain.size() > 1) {
             for (X509Certificate x509Certificate : chain) {
                 Certificate cert = new Certificate();
-                cert.setCertificate(pemConverter.certificateToString(x509Certificate));
+                cert.setCertificate(CertificateUtils.certificateToString(x509Certificate));
                 cert.setCredential(credential);
                 certs.add(cert);
             }
@@ -102,7 +100,7 @@ public class CryptoService {
         credential.setKeyBitLength(this.keysProperties.getKeySize());
         credential.setECDSACurveOID(null);
         credential.setKeyEnabled(true);
-        credential.setCertificate(pemConverter.certificateToString(certificateAndChain.signingCertificate()));
+        credential.setCertificate(CertificateUtils.certificateToString(certificateAndChain.signingCertificate()));
 
         credential.setOwner(owner);
         credential.setSubjectDN(certificateAndChain.signingCertificate().getSubjectX500Principal().toString());
@@ -150,7 +148,7 @@ public class CryptoService {
      * X509Certificate object
      */
     public X509Certificate pemToX509Certificate(String pemCertificate) throws ApiException {
-        return pemConverter.stringToCertificate(pemCertificate);
+        return CertificateUtils.stringToCertificate(pemCertificate);
     }
 
     public boolean isCertificateExpired(X509Certificate x509Certificate) {

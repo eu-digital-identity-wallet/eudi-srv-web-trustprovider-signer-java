@@ -54,24 +54,19 @@ public class LocalCertificateIssuer implements ICertificateIssuer {
 	private void createCertificateAndKey(CertificatesProperties.CASubject caSubject) throws Exception {
 		Security.addProvider(new BouncyCastleProvider());
 
-		// 1. Generate Key Pair
 		KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("RSA", "BC");
 		keyPairGen.initialize(2048);
 		KeyPair keyPair = keyPairGen.generateKeyPair();
 
-		// 2. Build Distinguished Name (DN)
 		X500Name issuer = new X500Name("CN="+caSubject.getCommonName()+", O="+caSubject.getOrganization()+", C="+caSubject.getCountry());
 
-		// 3. Set validity period
 		Date notBefore = new Date(System.currentTimeMillis() - 1000L * 60 * 60 * 24);
 		Date notAfter = new Date(System.currentTimeMillis() + (10L * 365 * 24 * 60 * 60 * 1000)); // 10 years
 
-		// 4. Create Certificate
 		BigInteger serial = BigInteger.valueOf(System.currentTimeMillis());
 		X509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(issuer, serial, notBefore, notAfter,
 			  issuer, keyPair.getPublic());
 
-		// 5. Sign it and verify the certificate
 		ContentSigner signer = new JcaContentSignerBuilder("SHA256WithRSA").build(keyPair.getPrivate());
 		X509CertificateHolder holder = certBuilder.build(signer);
 		X509Certificate cert = new JcaX509CertificateConverter().setProvider("BC").getCertificate(holder);
@@ -80,7 +75,6 @@ public class LocalCertificateIssuer implements ICertificateIssuer {
 		this.certificate = cert;
 		this.privateKey = keyPair.getPrivate();
 
-		// 7. Save to files
 		try (FileOutputStream certOut = new FileOutputStream(caSubject.getCertificateFile());
 			 FileOutputStream keyOut = new FileOutputStream(caSubject.getKeyFile())) {
 			certOut.write(cert.getEncoded());

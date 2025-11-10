@@ -4,8 +4,9 @@
 _7 Nov 2025_
 
 ### Changed
-- Made the usage of EJBCA and HSM optional.
-- Refactored code for improved maintainability.
+- Made the use of EJBCA and HSM optional.
+- Refactored code to improved maintainability.
+- Updated Maven and Java base image in Dockerfiles.
 
 ## [0.5.0]
 _15 Oct 2025_

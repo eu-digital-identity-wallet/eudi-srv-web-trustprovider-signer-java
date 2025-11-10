@@ -16,17 +16,33 @@
 
 package eu.europa.ec.eudi.signer.rssp.util;
 
-import java.text.SimpleDateFormat;
+import eu.europa.ec.eudi.signer.rssp.common.error.ApiException;
+import eu.europa.ec.eudi.signer.rssp.common.error.SignerError;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.security.Security;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class CertificateUtils {
-    
+
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
+
     /**
      * Formats a date as a string according to x509 RFC 5280
      * Assumes the given date is UTC
      * 
-     * @param date
      * @return null if the date is null otherwise formatted as YYYMMMDDHHMMSSZ
      */
     public static String x509Date(Date date) {
@@ -35,5 +51,26 @@ public class CertificateUtils {
 
         SimpleDateFormat X509DateFormat = new SimpleDateFormat("yyyyMMddHHmmss'Z'");
         return X509DateFormat.format(date);
+    }
+
+    public static String certificateToString(X509Certificate certificate) throws IOException {
+        try (StringWriter sw = new StringWriter();
+             JcaPEMWriter pemWriter = new JcaPEMWriter(sw)) {
+            pemWriter.writeObject(certificate);
+            pemWriter.flush();
+            return sw.toString();
+        }
+    }
+
+    public static X509Certificate stringToCertificate(String certificateString) throws ApiException {
+        try (StringReader stringReader = new StringReader(certificateString);
+             PEMParser pemParser = new PEMParser(stringReader)) {
+            Object object = pemParser.readObject();
+            return new JcaX509CertificateConverter()
+                  .getCertificate((X509CertificateHolder) object);
+        }
+        catch (IOException | CertificateException e){
+            throw new ApiException(SignerError.FailedUnmarshallingPEM, e);
+        }
     }
 }

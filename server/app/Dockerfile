@@ -1,6 +1,6 @@
 # Stage 1: Build Java Backend with Maven
 # 1. Pulling the dependencies
-FROM maven:3.8.5-openjdk-17 AS java_builder
+FROM maven:3.8.5-eclipse-temurin-17 AS java_builder
 # Change working directory in the container
 WORKDIR /opt/app
 # Copy all POMs first for better build caching
@@ -19,7 +19,7 @@ RUN mvn -B -e clean install -DskipTests
 
 # Stage 2: Prepare Java Runtime Image
 # 3. Preparing the runtime environment
-FROM openjdk:17-slim AS java_runtime
+FROM eclipse-temurin:17 AS java_runtime
 
 WORKDIR /opt/app
 

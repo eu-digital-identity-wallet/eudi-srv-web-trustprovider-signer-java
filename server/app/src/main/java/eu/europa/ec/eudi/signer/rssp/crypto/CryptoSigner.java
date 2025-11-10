@@ -19,9 +19,7 @@ package eu.europa.ec.eudi.signer.rssp.crypto;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serial;
 import java.security.MessageDigest;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -29,9 +27,8 @@ import java.util.List;
 
 import eu.europa.ec.eudi.signer.rssp.common.error.ApiException;
 import eu.europa.ec.eudi.signer.rssp.common.error.SignerError;
-import eu.europa.ec.eudi.signer.rssp.crypto.certificates.PemConverter;
 import eu.europa.ec.eudi.signer.rssp.crypto.keys.IKeysService;
-import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import eu.europa.ec.eudi.signer.rssp.util.CertificateUtils;
 import org.bouncycastle.cms.CMSSignedData;
 import eu.europa.esig.dss.cades.signature.CMSSignedDocument;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
@@ -55,11 +52,9 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class CryptoSigner {
-    private final PemConverter pemConverter;
     private final IKeysService keysService;
 
     public CryptoSigner(@Autowired IKeysService keysService) {
-        this.pemConverter = new PemConverter();
         this.keysService = keysService;
     }
 
@@ -77,11 +72,11 @@ public class CryptoSigner {
      */
     public String signWithPemCertificate(String dataToSignB64, String pemCertificate, List<String> pemCertificateChain,
                                          byte[] signingKeyWrapped, String signingAlgo, String signingAlgoParams) throws ApiException  {
-        X509Certificate x509Certificate = this.pemConverter.stringToCertificate(pemCertificate);
+        X509Certificate x509Certificate = CertificateUtils.stringToCertificate(pemCertificate);
 
         List<X509Certificate> x509CertificateChain = new ArrayList<>();
         for (String s : pemCertificateChain)
-            x509CertificateChain.add(this.pemConverter.stringToCertificate(s));
+            x509CertificateChain.add(CertificateUtils.stringToCertificate(s));
 
         try {
             byte[] dataToSign = Base64.getDecoder().decode(dataToSignB64);
@@ -97,10 +92,6 @@ public class CryptoSigner {
      * key
      *
      * @param data               data to sign (usually a document hash)
-     * @param signingCertificate certificate with which to sign the hash (contains
-     *                           the public key)
-     * @param signingKey         private key paired to the public key in the signing
-     *                           certificate
      * @return signature for provided data
      */
 
