@@ -85,8 +85,8 @@ public class LocalCertificateIssuer implements ICertificateIssuer {
 	@Override
 	public CertificatesDTO issueCertificate(String certificateSigningRequest, String countryCode, String givenName, String surname, String subjectCN) throws Exception {
 		// generate signing certificate
-		PKCS10CertificationRequest certificateHSM = fromPEM(certificateSigningRequest);
-		X509Certificate certificate = generateCertificate(new JcaPKCS10CertificationRequest (certificateHSM));
+		PKCS10CertificationRequest certificateRequest = fromPEM(certificateSigningRequest);
+		X509Certificate certificate = generateCertificate(new JcaPKCS10CertificationRequest (certificateRequest));
 
 		// get certificate chain
 		List<X509Certificate> certificateChain = new ArrayList<>();
@@ -107,9 +107,9 @@ public class LocalCertificateIssuer implements ICertificateIssuer {
 	}
 
 
-	private X509Certificate generateCertificate(JcaPKCS10CertificationRequest certificateHSM) throws Exception{
+	private X509Certificate generateCertificate(JcaPKCS10CertificationRequest certificateRequest) throws Exception{
 		X500Name issuer = new X500Name(this.certificate.getSubjectX500Principal().getName());
-		X500Name subject = certificateHSM.getSubject();
+		X500Name subject = certificateRequest.getSubject();
 		BigInteger serial = BigInteger.valueOf(System.currentTimeMillis());
 
 		Date notBefore = new Date(System.currentTimeMillis() - 1000L * 60 * 60 * 24);
@@ -121,17 +121,16 @@ public class LocalCertificateIssuer implements ICertificateIssuer {
 			  notBefore,
 			  notAfter,
 			  subject,
-			  certificateHSM.getPublicKey()
+			  certificateRequest.getPublicKey()
 		);
 
-		// === 5. Sign the certificate ===
+		// sign the certificate request
 		ContentSigner signer = new JcaContentSignerBuilder("SHA256WithRSA").build(this.privateKey);
 		X509CertificateHolder holder = certBuilder.build(signer);
 		X509Certificate signedCert = new JcaX509CertificateConverter()
 			  .setProvider("BC")
 			  .getCertificate(holder);
 
-		// === 6. Verify with CA public key ===
 		signedCert.verify(this.certificate.getPublicKey(), "BC");
 
 		return signedCert;

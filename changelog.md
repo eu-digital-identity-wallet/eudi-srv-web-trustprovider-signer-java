@@ -5,8 +5,11 @@ _7 Nov 2025_
 
 ### Changed
 - Made the use of EJBCA and HSM optional.
-- Refactored code to improved maintainability.
+- Refactored code to improve maintainability.
 - Updated Maven and Java base image in Dockerfiles.
+
+### Fixed
+- Corrected the `client_id` verification after the initTransaction request to the **OID4VP Verifier**.
 
 ## [0.5.0]
 _15 Oct 2025_

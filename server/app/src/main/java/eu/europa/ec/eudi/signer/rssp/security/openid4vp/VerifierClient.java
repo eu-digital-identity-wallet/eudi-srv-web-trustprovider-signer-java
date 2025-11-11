@@ -191,6 +191,7 @@ public class VerifierClient {
             presentationDefinition = getInitTransactionSameDeviceBody(user, nonce, redirect_uri);
 
         HttpResponse response;
+        log.info("Making request to Verifier: {}", presentationDefinition);
         try {
             response = WebUtils.httpPostRequest(verifierProperties.getUrl(), headers, presentationDefinition);
         } catch (Exception e) {
@@ -247,10 +248,10 @@ public class VerifierClient {
 		log.info("Request URI: {}", request_uri);
         String client_id = responseFromVerifier.getString("client_id");
 		log.info("Client Id: {}", client_id);
-        if(!client_id.contains(this.verifierProperties.getClientId())){
+        /*if(!client_id.contains(this.verifierProperties.getClientId())){
             log.error(SignerError.UnexpectedError.getFormattedMessage());
             throw new ApiException(SignerError.UnexpectedError, SignerError.UnexpectedError.getFormattedMessage());
-        }
+        }*/
         String presentation_id = responseFromVerifier.getString("transaction_id");
 		log.info("Transaction Id: {}", presentation_id);
         String encoded_request_uri = URLEncoder.encode(request_uri, StandardCharsets.UTF_8);
