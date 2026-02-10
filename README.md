@@ -458,6 +458,10 @@ ASSINA_CLIENT_BASE_URL=
 REACT_APP_APP_BASE_URL=
 REACT_APP_SA_BASE_URL=
 REACT_APP_CLIENT_BASE_URL=
+
+# ---------- OID4VP Configuration ----------
+VERIFIER-DOMAIN=verifier-backend.eudiw.dev
+WALLET-SCHEME=eudi-openid4vp://
 ```
 
 ## Local Deployment
@@ -529,22 +533,24 @@ spring:
 4. **Authentication using OpenId4VP**
 
    This application requires users to authenticate and authorize the signature of documents with certificates they own through their EUDI Wallet.
-   To enable this feature, communication with a backend **Verifier** is necessary. Define the address, URL and the client*id of the Verifier by adding the configuration in **application.yml** located in the folder \_server/app/src/main/resources*:
+   To enable this feature (authentication using PID), communication with a backend Verifier that supports OID4VP v1 is required.
+   It is mandatory to configure the domain and wallet scheme for OID4VP. TThis can be done in one of two ways:
 
+   1. By updating the **application.yml** located in the folder **authorization_server/src/main/resources**:
    ```
-   verifier:
-      url:
-      address:
-      client_id:
+   oid4vp:
+     verifier:
+       domain: ${VERIFIER-DOMAIN}
+       presentation-url: https://${VERIFIER-DOMAIN}/ui/presentations
+       validation-url: https://${VERIFIER-DOMAIN}/utilities/validations/msoMdoc/deviceResponse
+     wallet:
+       scheme: ${WALLET-SCHEME}
    ```
-
-   By default, this configuration is set to a backend server based on the code from the github **'eu-digital-identity-wallet/eudi-srv-web-verifier-endpoint-23220-4-kt'**. Therefore, the default configuration is:
-
+   
+   2. By setting environment variables in a .env file. Example:
    ```
-   verifier:
-      url: https://verifier-backend.eudiw.dev/ui/presentations
-      address: verifier-backend.eudiw.dev
-      client_id: verifier-backend.eudiw.dev
+   VERIFIER-DOMAIN=verifier-backend.eudiw.dev
+   WALLET-SCHEME=eudi-openid4vp://
    ```
 
    When a user wants to authenticate or sign a document, the server communicates with the Verifier and redirects the user to the EUDI Wallet. The result of this process is vp_tokens. The application then validates the vp_tokens received from the Verifier.
