@@ -45,10 +45,14 @@ sad:
     lifetimeMinutes: 5
     secret: ${AUTH_SAD_TOKEN_SECRET}
 
-verifier:
-    url: https://verifier-backend.eudiw.dev/ui/presentations
-    address: verifier-backend.eudiw.dev
-    client_id: verifier-backend.eudiw.dev
+oid4vp:
+    verifier:
+        domain: ${VERIFIER-DOMAIN}
+        presentation-url: https://${VERIFIER-DOMAIN}/ui/presentations
+        intended_use_id: ${INTENDED-USE-ID:}
+        registration_certificate_Jwt: ${REGISTRATION-CERTIFICATE-JWT:}
+    wallet:
+        scheme: ${WALLET-SCHEME}
 
 trusted-issuers:
     folder: issuersCertificates

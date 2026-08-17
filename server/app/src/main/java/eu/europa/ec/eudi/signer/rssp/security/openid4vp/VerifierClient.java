@@ -23,6 +23,7 @@ import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import eu.europa.ec.eudi.signer.rssp.common.config.OID4VPConfig;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.json.JSONException;
@@ -34,7 +35,6 @@ import org.springframework.stereotype.Component;
 import eu.europa.ec.eudi.signer.common.FailedConnectionVerifier;
 import eu.europa.ec.eudi.signer.common.TimeoutException;
 import eu.europa.ec.eudi.signer.csc.payload.RedirectLinkResponse;
-import eu.europa.ec.eudi.signer.rssp.common.config.VerifierProperties;
 import eu.europa.ec.eudi.signer.rssp.common.error.ApiException;
 import eu.europa.ec.eudi.signer.rssp.common.error.SignerError;
 import eu.europa.ec.eudi.signer.rssp.util.WebUtils;
@@ -50,11 +50,11 @@ public class VerifierClient {
     public static String PRESENTATION_DEFINITION_INPUT_DESCRIPTORS_ID = "eu.europa.ec.eudi.pid.1";
 
     private static final Logger log = LoggerFactory.getLogger(VerifierClient.class);
-    private final VerifierProperties verifierProperties;
+    private final OID4VPConfig oid4VPConfig;
     private final VerifierCreatedVariables verifierVariables;
 
-    public VerifierClient(VerifierProperties verifierProperties) {
-        this.verifierProperties = verifierProperties;
+    public VerifierClient(OID4VPConfig oid4VPConfig) {
+        this.oid4VPConfig = oid4VPConfig;
         this.verifierVariables = new VerifierCreatedVariables();
     }
 
@@ -159,25 +159,28 @@ public class VerifierClient {
         return new JSONObject(dcqlQuery);
     }
 
-    private String getInitTransactionCrossDeviceBody(String nonce) {
+    private JSONObject getCommonStructureMessage(String nonce) {
         JSONObject dcqlQueryJSON = getDCQLQueryJSON();
 
         JSONObject jsonBodyToInitPresentation = new JSONObject();
         jsonBodyToInitPresentation.put("type", "vp_token");
         jsonBodyToInitPresentation.put("nonce", nonce);
         jsonBodyToInitPresentation.put("dcql_query", dcqlQueryJSON);
-        return jsonBodyToInitPresentation.toString();
+        String registrationCertificate = oid4VPConfig.getVerifier().getRegistrationCertificateJwt();
+        if(registrationCertificate != null && !registrationCertificate.isBlank())
+            jsonBodyToInitPresentation.put("registration_certificate", registrationCertificate);
+        else
+            jsonBodyToInitPresentation.put("intended_use_id", oid4VPConfig.getVerifier().getIntendedUseId());
+        return jsonBodyToInitPresentation;
+    }
+
+    private String getInitTransactionCrossDeviceBody(String nonce) {
+        return getCommonStructureMessage(nonce).toString();
     }
 
     private String getInitTransactionSameDeviceBody(String user, String nonce, String redirect_uri) {
-        JSONObject dcqlQueryJSON = getDCQLQueryJSON();
-
         String redirectUri = redirect_uri+"?session_id="+user+"&response_code={RESPONSE_CODE}";
-
-        JSONObject jsonBodyToInitPresentation = new JSONObject();
-        jsonBodyToInitPresentation.put("type", "vp_token");
-        jsonBodyToInitPresentation.put("nonce", nonce);
-        jsonBodyToInitPresentation.put("dcql_query", dcqlQueryJSON);
+        JSONObject jsonBodyToInitPresentation = getCommonStructureMessage(nonce);jsonBodyToInitPresentation.put("wallet_response_redirect_uri_template", redirectUri);
         jsonBodyToInitPresentation.put("wallet_response_redirect_uri_template", redirectUri);
         return jsonBodyToInitPresentation.toString();
     }
@@ -193,7 +196,7 @@ public class VerifierClient {
         HttpResponse response;
         log.info("Making request to Verifier: {}", presentationDefinition);
         try {
-            response = WebUtils.httpPostRequest(verifierProperties.getUrl(), headers, presentationDefinition);
+            response = WebUtils.httpPostRequest(this.oid4VPConfig.getVerifier().getPresentationUrl(), headers, presentationDefinition);
         } catch (Exception e) {
             log.error("An error occurred when trying to connect to the Verifier. {}", e.getMessage());
             throw new Exception("An error occurred when trying to connect to the Verifier");
@@ -248,10 +251,6 @@ public class VerifierClient {
 		log.info("Request URI: {}", request_uri);
         String client_id = responseFromVerifier.getString("client_id");
 		log.info("Client Id: {}", client_id);
-        /*if(!client_id.contains(this.verifierProperties.getClientId())){
-            log.error(SignerError.UnexpectedError.getFormattedMessage());
-            throw new ApiException(SignerError.UnexpectedError, SignerError.UnexpectedError.getFormattedMessage());
-        }*/
         String presentation_id = responseFromVerifier.getString("transaction_id");
 		log.info("Transaction Id: {}", presentation_id);
         String encoded_request_uri = URLEncoder.encode(request_uri, StandardCharsets.UTF_8);
@@ -265,7 +264,7 @@ public class VerifierClient {
     }
 
     private String redirectUriDeepLink(String request_uri, String client_id) {
-        return "eudi-openid4vp://" + verifierProperties.getAddress() + "?client_id=" + client_id + "&request_uri=" + request_uri;
+        return this.oid4VPConfig.getWallet().getScheme() + this.oid4VPConfig.getVerifier().getDomain() + "?client_id=" + client_id + "&request_uri=" + request_uri;
     }
 
     /**
@@ -376,10 +375,10 @@ public class VerifierClient {
     }
 
     private String uriToRequestWalletPID(String presentation_id, String nonce) {
-        return verifierProperties.getUrl() + "/" + presentation_id + "?nonce=" + nonce;
+        return this.oid4VPConfig.getVerifier().getPresentationUrl() + "/" + presentation_id + "?nonce=" + nonce;
     }
 
     private String getUrlToRetrieveVPTokenWithResponseCode(String presentation_id, String nonce, String code) {
-        return verifierProperties.getUrl() + "/" + presentation_id + "?nonce=" + nonce + "&response_code=" + code;
+        return this.oid4VPConfig.getVerifier().getPresentationUrl() + "/" + presentation_id + "?nonce=" + nonce + "&response_code=" + code;
     }
 }

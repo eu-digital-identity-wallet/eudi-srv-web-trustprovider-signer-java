@@ -16,37 +16,58 @@
 
 package eu.europa.ec.eudi.signer.rssp.common.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.PropertySource;
+import jakarta.validation.constraints.AssertTrue;
 
-@PropertySource("file:application.yml")
-@ConfigurationProperties(prefix = "verifier")
 public class VerifierProperties {
-    private String url;
-    private String address;
-    private String clientId;
+    private String domain;
+    private String presentationUrl;
+    private String validationUrl;
+    private String intendedUseId;
+    private String registrationCertificateJwt;
 
-    public String getUrl() {
-        return this.url;
+    @AssertTrue(message = "Either 'intendedUseId' or 'registrationCertificateId' must be defined")
+    private boolean isIntendedUseOrRegistrationCertificateValid() {
+        return (intendedUseId != null && !intendedUseId.isBlank())
+              || (registrationCertificateJwt != null && !registrationCertificateJwt.isBlank());
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public String getDomain() {
+        return domain;
     }
 
-    public String getAddress() {
-        return this.address;
+    public void setDomain(String domain) {
+        this.domain = domain;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
+    public String getPresentationUrl() {
+        return presentationUrl;
     }
 
-    public String getClientId() {
-        return clientId;
+    public void setPresentationUrl(String presentationUrl) {
+        this.presentationUrl = presentationUrl;
     }
 
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
+    public String getValidationUrl() {
+        return validationUrl;
+    }
+
+    public void setValidationUrl(String validationUrl) {
+        this.validationUrl = validationUrl;
+    }
+
+    public String getIntendedUseId() {
+        return intendedUseId;
+    }
+
+    public void setIntendedUseId(String intendedUseId) {
+        this.intendedUseId = intendedUseId;
+    }
+
+    public String getRegistrationCertificateJwt() {
+        return registrationCertificateJwt;
+    }
+
+    public void setRegistrationCertificateJwt(String registrationCertificateJwt) {
+        this.registrationCertificateJwt = registrationCertificateJwt;
     }
 }

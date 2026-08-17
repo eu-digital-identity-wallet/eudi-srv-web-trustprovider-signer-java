@@ -40,7 +40,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
-@EnableConfigurationProperties({ JwtConfigProperties.class, CSCProperties.class, VerifierProperties.class, CertificatesProperties.class, TrustedIssuersCertificatesProperties.class, AuthProperties.class, SADProperties.class, KeysProperties.class })
+@EnableConfigurationProperties({ JwtConfigProperties.class, CSCProperties.class, OID4VPConfig.class, CertificatesProperties.class, TrustedIssuersCertificatesProperties.class, AuthProperties.class, SADProperties.class, KeysProperties.class })
 public class RSSPApplication {
     private static final Logger logger = LoggerFactory.getLogger(RSSPApplication.class);
 
