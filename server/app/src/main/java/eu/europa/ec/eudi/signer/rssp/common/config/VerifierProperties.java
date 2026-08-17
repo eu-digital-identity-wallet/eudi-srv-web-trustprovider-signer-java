@@ -16,37 +16,32 @@
 
 package eu.europa.ec.eudi.signer.rssp.common.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.PropertySource;
-
-@PropertySource("file:application.yml")
-@ConfigurationProperties(prefix = "verifier")
 public class VerifierProperties {
-    private String url;
-    private String address;
-    private String clientId;
+    private String domain;
+    private String presentationUrl;
+    private String validationUrl;
 
-    public String getUrl() {
-        return this.url;
+    public String getDomain() {
+        return domain;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setDomain(String domain) {
+        this.domain = domain;
     }
 
-    public String getAddress() {
-        return this.address;
+    public String getPresentationUrl() {
+        return presentationUrl;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
+    public void setPresentationUrl(String presentationUrl) {
+        this.presentationUrl = presentationUrl;
     }
 
-    public String getClientId() {
-        return clientId;
+    public String getValidationUrl() {
+        return validationUrl;
     }
 
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
+    public void setValidationUrl(String validationUrl) {
+        this.validationUrl = validationUrl;
     }
 }
