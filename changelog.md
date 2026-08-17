@@ -1,10 +1,11 @@
 # Changelog
 
 ## [0.7.0]
-_X Fev 2026_
+_17 Aug 2026_
 
 ### Changed
 - Updated OID4VP configuration: the wallet scheme and verifier domain are now configurable via environment variables.
+- Updated OID4VP requests to specify either a registration certificate or intended use on Verifier requests.
 
 ## [0.6.0]
 _7 Nov 2025_

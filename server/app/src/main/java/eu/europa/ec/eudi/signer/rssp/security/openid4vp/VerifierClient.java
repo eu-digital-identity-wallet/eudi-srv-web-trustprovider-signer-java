@@ -159,25 +159,28 @@ public class VerifierClient {
         return new JSONObject(dcqlQuery);
     }
 
-    private String getInitTransactionCrossDeviceBody(String nonce) {
+    private JSONObject getCommonStructureMessage(String nonce) {
         JSONObject dcqlQueryJSON = getDCQLQueryJSON();
 
         JSONObject jsonBodyToInitPresentation = new JSONObject();
         jsonBodyToInitPresentation.put("type", "vp_token");
         jsonBodyToInitPresentation.put("nonce", nonce);
         jsonBodyToInitPresentation.put("dcql_query", dcqlQueryJSON);
-        return jsonBodyToInitPresentation.toString();
+        String registrationCertificate = oid4VPConfig.getVerifier().getRegistrationCertificateJwt();
+        if(registrationCertificate != null && !registrationCertificate.isBlank())
+            jsonBodyToInitPresentation.put("registration_certificate", registrationCertificate);
+        else
+            jsonBodyToInitPresentation.put("intended_use_id", oid4VPConfig.getVerifier().getIntendedUseId());
+        return jsonBodyToInitPresentation;
+    }
+
+    private String getInitTransactionCrossDeviceBody(String nonce) {
+        return getCommonStructureMessage(nonce).toString();
     }
 
     private String getInitTransactionSameDeviceBody(String user, String nonce, String redirect_uri) {
-        JSONObject dcqlQueryJSON = getDCQLQueryJSON();
-
         String redirectUri = redirect_uri+"?session_id="+user+"&response_code={RESPONSE_CODE}";
-
-        JSONObject jsonBodyToInitPresentation = new JSONObject();
-        jsonBodyToInitPresentation.put("type", "vp_token");
-        jsonBodyToInitPresentation.put("nonce", nonce);
-        jsonBodyToInitPresentation.put("dcql_query", dcqlQueryJSON);
+        JSONObject jsonBodyToInitPresentation = getCommonStructureMessage(nonce);jsonBodyToInitPresentation.put("wallet_response_redirect_uri_template", redirectUri);
         jsonBodyToInitPresentation.put("wallet_response_redirect_uri_template", redirectUri);
         return jsonBodyToInitPresentation.toString();
     }
