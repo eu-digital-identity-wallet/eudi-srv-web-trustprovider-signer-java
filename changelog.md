@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.1]
+_29 Oct 2026_
+
+### Fixed
+- HSM key objects are now removed after use: the RSA key pair generated in the HSM is destroyed once the private key has been wrapped, and the unwrapped private key is destroyed after signing, so these objects no longer build up in the HSM.
+
 ## [0.7.0]
 _17 Aug 2026_
 
